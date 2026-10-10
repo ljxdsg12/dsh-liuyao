@@ -254,6 +254,12 @@ window.__ModuleLoader__.load({
 			".ly-about-wechat{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 4px}",
 			".ly-about-code{font-family:var(--dsw-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace);font-size:12px;",
 			"background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l2);border-radius:6px;padding:2px 7px;overflow-wrap:anywhere}",
+			// —— AI 断卦 ——
+			".ly-ai{border-left:3px solid var(--dsw-alias-brand-primary);padding-left:12px;margin-top:10px}",
+			".ly-ai-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}",
+			".ly-ai-tag{font-size:12px;font-weight:600;letter-spacing:.06em;color:#fff;background:var(--dsw-alias-brand-primary);border-radius:999px;padding:2px 10px}",
+			".ly-ai-dot{width:7px;height:7px;border-radius:50%;background:var(--dsw-alias-brand-primary);animation:ly-pulse 1s ease-in-out infinite}",
+			"@keyframes ly-pulse{0%,100%{opacity:.25}50%{opacity:1}}",
 			".ly-card{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-lg,12px);padding:14px 16px;margin-top:14px;",
 			"background:var(--dsw-alias-bg-layer-2);box-shadow:var(--dsw-shadow-lv1,0 1px 2px rgba(0,0,0,.05))}",
 			".ly-opening{font-size:14px;line-height:2;color:var(--dsw-alias-label-primary);letter-spacing:.02em;",
@@ -455,12 +461,13 @@ window.__ModuleLoader__.load({
 			});
 		}
 
-		// 追问：流式端点（NDJSON，逐行增量）
-		function postStream(name, payload, onEvent) {
+		// 流式端点（NDJSON，逐行增量）：追问与 AI 断卦共用
+		function postStream(name, payload, onEvent, signal) {
 			return fetch(endpointUrl(name), {
 				method: "POST",
 				headers: { "content-type": "application/json" },
 				body: JSON.stringify(payload === undefined ? {} : payload),
+				...(signal ? { signal: signal } : {}),
 			}).then(function (res) {
 				if (!res.ok) {
 					return res.text().then(function (text) {
@@ -505,6 +512,7 @@ window.__ModuleLoader__.load({
 				analyze: function (body) { return post("analyze", body) },
 				selftest: function () { return post("selftest", {}) },
 				about: function () { return post("about", {}) },
+				analyzeAi: function (body, onEvent) { return postStream("analyze-ai", body, onEvent) },
 			};
 		}
 
@@ -777,6 +785,78 @@ window.__ModuleLoader__.load({
 			);
 		}
 
+		// AI 断卦：把模型输出的受限 Markdown 解析成可渲染的块。
+		// 约定（见 src/analysis-ai.mjs 的 FORMAT_RULES）：
+		//   ## 小标题       → 一个区块
+		//   - [吉]/[凶]/[中] → 结论清单条目
+		//   其他非空行       → 正文段落
+		function parseAiMarkdown(text) {
+			var secs = [];
+			var cur = null;
+			var lines = String(text || "").split("\n");
+			for (var i = 0; i < lines.length; i += 1) {
+				var line = lines[i];
+				var t = line.trim();
+				if (t === "") continue;
+				var head = /^#{1,3}\s*(.+?)\s*$/.exec(t);
+				if (head) {
+					cur = { title: head[1], paras: [], items: [] };
+					secs.push(cur);
+					continue;
+				}
+				var item = /^[-*]\s*\[(吉|凶|中)\]\s*(.+)$/.exec(t);
+				if (item) {
+					if (!cur) { cur = { title: "结论", paras: [], items: [] }; secs.push(cur) }
+					var body = item[2];
+					var src = "";
+					var sm = /〔([^〕]+)〕\s*$/.exec(body);
+					if (sm) { src = sm[1]; body = body.slice(0, sm.index).trim() }
+					cur.items.push({ level: item[1], text: body, source: src });
+					continue;
+				}
+				if (!cur) { cur = { title: "", paras: [], items: [] }; secs.push(cur) }
+				// 段内可能自带〔出处〕，单独提出以便用出处样式显示
+				var srcm = /〔([^〕]+)〕\s*$/.exec(t);
+				if (srcm) cur.paras.push({ text: t.slice(0, srcm.index).trim(), source: srcm[1] });
+				else cur.paras.push({ text: t, source: "" });
+			}
+			return secs;
+		}
+
+		// AI 断卦结果渲染：流式过程中就按区块显示，不整段变一次
+		function AiAnalysisView(props) {
+			var text = props.text || "";
+			var streaming = props.streaming;
+			if (!text && !streaming) return null;
+			var secs = parseAiMarkdown(text);
+			return h("div", { className: "ly-ai" },
+				h("div", { className: "ly-ai-head" },
+					h("span", { className: "ly-ai-tag" }, "AI 断卦"),
+					h("span", { className: "ly-sub" }, streaming ? "正在生成…" : "依典籍推理生成"),
+					streaming ? h("span", { className: "ly-ai-dot" }) : null,
+				),
+				secs.map(function (s, i) {
+					return h("div", { className: "ly-sec", key: "ai" + i },
+						s.title ? h("h4", null, s.title) : null,
+						s.paras.map(function (p, j) {
+							return h("div", { key: "aip" + j, style: { marginBottom: 6 } },
+								h("div", null, p.text),
+								p.source ? h("div", { className: "ly-src" }, "〔" + p.source + "〕") : null,
+							);
+						}),
+						s.items.map(function (it, j) {
+							var cls = it.level === "凶" ? "ly-key" : it.level === "吉" ? "ly-good" : "ly-mark";
+							return h("div", { key: "aii" + j, style: { marginBottom: 3 } },
+								h("span", { className: cls }, "[" + it.level + "] "),
+								it.text,
+								it.source ? h("span", { className: "ly-src" }, " 〔" + it.source + "〕") : null,
+							);
+						}),
+					);
+				}),
+			);
+		}
+
 		function nowString() {
 			var d = new Date();
 			var p2 = function (n) { return String(n).padStart(2, "0"); };
@@ -800,6 +880,13 @@ window.__ModuleLoader__.load({
 			var [showRaw, setShowRaw] = React.useState(false);
 			var [about, setAbout] = React.useState(null);
 			var [aboutOpen, setAboutOpen] = React.useState(false);
+			// AI 断卦（默认走 AI；盘面事实仍由规则引擎算出后交给模型）
+			var [aiMode, setAiMode] = React.useState(true);
+			var [aiText, setAiText] = React.useState("");
+			var [aiStreaming, setAiStreaming] = React.useState(false);
+			var [aiError, setAiError] = React.useState("");
+			var [aiNotice, setAiNotice] = React.useState("");
+			var aiAbort = React.useRef(null);
 
 			React.useEffect(function () {
 				var alive = true;
@@ -808,6 +895,7 @@ window.__ModuleLoader__.load({
 				api.config().then(function (v) {
 					if (alive && v && v.config) {
 						setConfirmEach(v.config.requireConfirmEach !== false);
+						setAiMode(v.config.analysisMode !== "rule");
 						if (v.config.aboutEnabled !== false && typeof api.about === "function") {
 							api.about().then(function (a) { if (alive && a && a.value) setAbout(a.value); }).catch(function () {});
 						}
@@ -851,14 +939,49 @@ window.__ModuleLoader__.load({
 				setAwaiting(false);
 				setResult(null);
 				setError("");
+				stopAi();
+			}
+
+			// —— AI 断卦的流式状态 ——
+			function stopAi() {
+				if (aiAbort.current) { try { aiAbort.current.abort() } catch (e) {} aiAbort.current = null }
+				setAiText("");
+				setAiStreaming(false);
+				setAiError("");
+			}
+
+			function runAiAnalysis(body) {
+				var controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
+				aiAbort.current = controller;
+				setAiText("");
+				setAiError("");
+				setAiStreaming(true);
+				api.analyzeAi(body, function (ev) {
+					if (ev.type === "delta") setAiText(function (prev) { return prev + ev.text });
+					else if (ev.type === "notice") setAiNotice(ev.text);
+					else if (ev.type === "error") { setAiError(ev.text || "AI 断卦失败"); }
+				}, controller ? controller.signal : undefined)
+					.then(function () { setAiStreaming(false) })
+					.catch(function (e) {
+						if (String(e && e.name) === "AbortError") return;
+						setAiError(String((e && e.message) || e));
+						setAiStreaming(false);
+					});
 			}
 
 			function cast() {
 				setError("");
 				if (!allFilled) { setError("六爻未齐：请填写或摇出初爻至上爻共六爻（取值 6/7/8/9）"); return; }
 				setBusy(true);
-				api.cast({ time: time, yao: values, topic: topic })
-					.then(function (v) { setResult(v); setBusy(false); })
+				stopAi();
+				var body = { time: time, yao: values, topic: topic };
+				api.cast(body)
+					.then(function (v) {
+						setResult(v);
+						setBusy(false);
+						// AI 断卦：盘面（含规则引擎算出的事实）已就绪，交给模型推理
+						if (aiMode) runAiAnalysis(body);
+					})
 					.catch(function (e) { setError(String(e.message || e)); setBusy(false); });
 			}
 
@@ -1017,7 +1140,38 @@ window.__ModuleLoader__.load({
 								h("button", { className: "ly-btn ghost", onClick: function () { setShowRaw(!showRaw); } }, showRaw ? "隐藏原始排盘" : "查看原始排盘文本"),
 							),
 							showRaw ? h("pre", { className: "ly-mono", style: { marginTop: 8 } }, result.text) : null,
-							h(AnalysisView, { analysis: result.analysis }),
+							// 断卦方式切换：AI 由模型依典籍推理；规则为内置引擎（离线、零 token）
+							h("div", { className: "ly-row", style: { marginTop: 4 } },
+								h("span", { className: "ly-label" }, "断卦方式"),
+								h("button", {
+									className: "ly-btn" + (aiMode ? "" : " ghost"),
+									onClick: function () {
+										setAiMode(true);
+										if (!aiText && !aiStreaming) runAiAnalysis({ time: time, yao: values, topic: topic });
+									},
+								}, "AI 断卦"),
+								h("button", {
+									className: "ly-btn" + (aiMode ? " ghost" : ""),
+									onClick: function () { stopAi(); setAiMode(false) },
+								}, "规则断卦"),
+								aiMode && !aiStreaming && aiText
+									? h("button", {
+										className: "ly-btn ghost",
+										onClick: function () { runAiAnalysis({ time: time, yao: values, topic: topic }) },
+									}, "重新生成")
+									: null,
+							),
+							aiMode
+								? h("div", null,
+									aiError
+										? h("div", { className: "ly-card" },
+											h("div", { className: "ly-key" }, "AI 断卦未能完成"),
+											h("div", { style: { marginTop: 6 } }, aiError),
+											h("div", { className: "ly-src" }, "可切换到「规则断卦」查看内置规则引擎的结果。"))
+										: h(AiAnalysisView, { text: aiText, streaming: aiStreaming }),
+									aiNotice ? h("div", { className: "ly-src" }, aiNotice) : null,
+								)
+								: h(AnalysisView, { analysis: result.analysis }),
 							// 一卦一断：解读之后的追问对话框
 							props.followUpEnabled === false
 								? null

@@ -11,11 +11,11 @@
 |---|---|
 | 公开仓库 | <https://github.com/ljxdsg12/dsh-liuyao>（公开、默认分支 main） |
 | 代码 | `main`，**29 个提交**，标签 `v0.1.0`，工作区干净 |
-| Release | <https://github.com/ljxdsg12/dsh-liuyao/releases/tag/v0.1.0>，`prerelease: false`（Latest） |
-| Release 附件 | `dsh-liuyao-0.1.0.tgz`，393,640 字节，SHA256 `1a465595…d6ffc5` |
-| 发布包（最新） | `dsh-liuyao-0.1.0.tgz` / `.tar.gz`，387.3 KB，SHA256 `0df1fe2e…96c0e7`（含「关于」功能） |
+| Release | <https://github.com/ljxdsg12/dsh-liuyao/releases/tag/v0.2.0>，`prerelease: false`（Latest） |
+| Release 附件 | `dsh-liuyao-0.2.0.tgz`，393,640 字节，SHA256 `1a465595…d6ffc5` |
+| 发布包（最新） | `dsh-liuyao-0.2.0.tgz` / `.tar.gz`，387.3 KB，SHA256 `0df1fe2e…96c0e7`（含「关于」功能） |
 | 本地安装实测 | `dsh plugin add <tarball>` → **323ms**，免 git、免联网、免代理 |
-| 联网安装实测 | `dsh plugin add "github:ljxdsg12/dsh-liuyao#v0.1.0"` → **4s**（需 git + 代理） |
+| 联网安装实测 | `dsh plugin add "github:ljxdsg12/dsh-liuyao#v0.2.0"` → **4s**（需 git + 代理） |
 | 装后可用性 | 工具 3 个、端点 **8** 条；`山火贲 → 地雷复`、8 个分析章节、含通俗总结与断卦依据 |
 | 功能 | 起卦（手工／电脑摇卦）、排盘、断卦（逐条注明出处）、通俗总结、一卦一断、**关于（含咨询微信号）** |
 | 自检 | `npm test` → **8/8 套件通过**；`scripts/preflight.mjs` → 全部通过 |
@@ -26,10 +26,10 @@
 
 ```powershell
 # ✅ 推荐：本地 tarball（免 git、免联网、免代理）
-dsh plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.1.0.tar.gz"
+dsh plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.2.0.tar.gz"
 
 # ✅ 联网方式（需要机器上有 git，且需代理）
-dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
+dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.2.0"
 ```
 
 | 方式 | 需 git | 需联网 | 实测 |
@@ -79,7 +79,7 @@ $env:NODE_USE_ENV_PROXY='1'
 
 ### 2. 给朋友试用
 
-发 `dsh-liuyao-0.1.0.tar.gz`（约 387 KB），并附 [SHARE.md](SHARE.md)。
+发 `dsh-liuyao-0.2.0.tar.gz`（约 387 KB），并附 [SHARE.md](SHARE.md)。
 
 ### 3. 提收录 PR
 

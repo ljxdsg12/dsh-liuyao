@@ -1,17 +1,17 @@
-# dsh-liuyao v0.1.0
+# dsh-liuyao v0.2.0
 
 DeepSeek Harness 的六爻算卦插件：**先天八卦图为盘，火珠林纳甲为法，增删卜易为断**。
 
 ## 安装
 
 ```bash
-dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
+dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.2.0"
 ```
 
-或从本页下载 `dsh-liuyao-0.1.0.tgz` 后本地安装：
+或从本页下载 `dsh-liuyao-0.2.0.tgz` 后本地安装：
 
 ```bash
-dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz
+dsh plugin --profile web add ./dsh-liuyao-0.2.0.tgz
 ```
 
 装完**重启 DSH**，再刷新界面，会出现「六爻」主面板与侧栏图标。

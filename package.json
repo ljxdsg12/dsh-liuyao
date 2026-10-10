@@ -1,7 +1,7 @@
 {
   "name": "dsh-liuyao",
-  "version": "0.1.0",
-  "description": "六爻算卦插件（DeepSeek Harness）：先天八卦盘背景、周易开场辞、手工/电脑摇卦、纳甲排盘、典籍严格断卦，以及「一卦一断」追问对话框。纳甲依《火珠林》，八宫世应依《卜筮正宗》，断卦依《增删卜易》《黄金策》《易冒》《易隐》《周易应用经验学》。 / Six-yao (I Ching) divination plugin for DeepSeek Harness: xiantian bagua backdrop, Zhouyi opening verse, manual or simulated coin toss, najia charting, strictly sourced interpretation, and a one-hexagram-one-question follow-up dialog.",
+  "version": "0.2.0",
+  "description": "六爻算卦插件（DeepSeek Harness）：先天八卦盘背景、周易开场辞、手工/电脑摇卦、纳甲排盘，断卦由模型依典籍推理（盘面事实由规则引擎算出，逐条注明出处），以及「一卦一断」追问。纳甲依《火珠林》，八宫世应依《卜筮正宗》，断卦依《增删卜易》《黄金策》《易冒》《易隐》《周易应用经验学》。 / Six-yao (I Ching) divination plugin for DeepSeek Harness: xiantian bagua backdrop, Zhouyi opening verse, manual or simulated coin toss, najia charting, AI interpretation grounded in the classics with per-statement citations, and a one-hexagram-one-question follow-up dialog.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

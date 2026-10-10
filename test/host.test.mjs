@@ -142,7 +142,7 @@ try { await tools.get('liuyao_cast').execute({ time: '2026-10-10 12:00', yao: [1
 check(yaoRejected, '爻数不足被拒')
 
 console.log('--- HTTP 端点 ---')
-const expectedPaths = ['/dsh-liuyao/config', '/dsh-liuyao/opening', '/dsh-liuyao/selftest', '/dsh-liuyao/toss', '/dsh-liuyao/cast', '/dsh-liuyao/analyze', '/dsh-liuyao/about', '/dsh-liuyao/ask']
+const expectedPaths = ['/dsh-liuyao/config', '/dsh-liuyao/opening', '/dsh-liuyao/selftest', '/dsh-liuyao/toss', '/dsh-liuyao/cast', '/dsh-liuyao/analyze', '/dsh-liuyao/analyze-ai', '/dsh-liuyao/about', '/dsh-liuyao/ask']
 check(routes.length === expectedPaths.length, `注册 ${expectedPaths.length} 个 exact 路由`, routes.map(r => r.path).join(','))
 check(routes.every(r => r.kind === 'exact'), '全部为 exact 路由（优先于静态兜底，不再返回 405）')
 check(expectedPaths.every(p => routes.some(r => r.path === p)), '端点路径齐备', routes.map(r => r.path).join(','))

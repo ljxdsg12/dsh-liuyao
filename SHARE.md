@@ -22,7 +22,7 @@ dsh --version
 ### 第 1 步：安装
 
 ```powershell
-dsh plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.1.0.tar.gz"
+dsh plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.2.0.tar.gz"
 ```
 
 把路径换成文件实际存放的位置。看到 `Done in …s` 就成功了。然后：
@@ -43,7 +43,7 @@ DSH 桌面版**默认不把 `dsh` 加进 PATH**（很常见，不是你装错了
 **办法一：用完整路径**（把安装目录换成你自己的）
 
 ```powershell
-& "C:\你的安装目录\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.1.0.tar.gz"
+& "C:\你的安装目录\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.2.0.tar.gz"
 ```
 
 安装目录就是 `DeepSeek Harness.exe` 所在的那个文件夹。不确定位置：

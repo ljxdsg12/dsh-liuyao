@@ -7,7 +7,7 @@
 ### 方式一：git 规格（在线，推荐）
 
 ```bash
-dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
+dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.2.0"
 ```
 
 实测：**2.5 秒，exit 0**，安装后加载正常（3 个工具 / 7 个端点，`山火贲 → 地雷复` 排盘正常）。
@@ -21,8 +21,8 @@ dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
 ### 方式二：本地 tarball（离线，最稳）
 
 ```powershell
-# 从 Release 页面下载 dsh-liuyao-0.1.0.tgz，然后：
-dsh plugin --profile web add .\dsh-liuyao-0.1.0.tgz
+# 从 Release 页面下载 dsh-liuyao-0.2.0.tgz，然后：
+dsh plugin --profile web add .\dsh-liuyao-0.2.0.tgz
 ```
 
 实测：**330ms，exit 0**，截图等全部文件随包。
@@ -30,7 +30,7 @@ dsh plugin --profile web add .\dsh-liuyao-0.1.0.tgz
 ## ❌ 不可用：Release 的 tarball 直链
 
 ```bash
-dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
+dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.2.0/dsh-liuyao-0.2.0.tgz"
 ```
 
 报错：

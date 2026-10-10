@@ -28,14 +28,14 @@ git init; git add .; git commit -m "dsh-liuyao 0.1.0"
 git remote add origin https://github.com/ljxdsg12/dsh-liuyao.git
 git push -u origin main
 
-# 3) 打 tag、建 Release，把 dsh-liuyao-0.1.0.tgz 作为附件上传
+# 3) 打 tag、建 Release，把 dsh-liuyao-0.2.0.tgz 作为附件上传
 git tag v0.1.0; git push origin v0.1.0
 ```
 
 Release 附件上传后，用户这条命令即可安装：
 
 ```bash
-dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
+dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.2.0/dsh-liuyao-0.2.0.tgz"
 ```
 
 ### 安装链路实测记录（本机，已跑通）
@@ -44,7 +44,7 @@ dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/do
 
 | 步骤 | 结果 |
 |---|---|
-| `node pnpm.cjs pack` | 产出 `dsh-liuyao-0.1.0.tgz`（80 KB），白名单生效（无 test/ 与 node_modules） |
+| `node pnpm.cjs pack` | 产出 `dsh-liuyao-0.2.0.tgz`（80 KB），白名单生效（无 test/ 与 node_modules） |
 | `dsh plugin --profile liuyaotest add <本地 tgz>` | **exit 0**，301ms；profile 自动创建、依赖写入、bundles 自动追加 `dsh-liuyao` |
 | 从安装目录 import 已装包 | `name=liuyao`、工具 3 个、路由 7 条；`山火贲` 排盘正常、文本含通俗总结 |
 
@@ -52,7 +52,7 @@ dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/do
 
 | 步骤 | 结果 |
 |---|---|
-| `dsh plugin --profile verifyinstall add "https://github.com/…/v0.1.0/dsh-liuyao-0.1.0.tgz"` | **exit 0，2.5 秒**；profile 依赖写入该 URL，bundles 追加 `dsh-liuyao` |
+| `dsh plugin --profile verifyinstall add "https://github.com/…/v0.1.0/dsh-liuyao-0.2.0.tgz"` | **exit 0，2.5 秒**；profile 依赖写入该 URL，bundles 追加 `dsh-liuyao` |
 | 从安装目录 import 已装包 | 工具 3 个、端点 7 条；`山火贲 → 地雷复` 排盘、8 个分析章节、含通俗总结与断卦依据 |
 | 附件完整性 | 三方 SHA256 一致：本地 = 公网下载 = GitHub API 报告的 `311f9904…5161`，81,884 字节 |
 
@@ -103,7 +103,7 @@ dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/do
   },
   "category": "fun",
   "npm": null,
-  "install": "dsh plugin --profile web add \"https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz\"",
+  "install": "dsh plugin --profile web add \"https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.2.0/dsh-liuyao-0.2.0.tgz\"",
   "screenshots": ["https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/HEAD/assets/screenshot-1.png"]
 }
 ```

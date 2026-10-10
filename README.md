@@ -13,7 +13,7 @@ DeepSeek Harness 的六爻插件：**先天八卦图为盘，火珠林纳甲为�
 | 手工起卦 | 输入准确时间 + 摇出的卦（初爻→上爻）；每个选项直接标出**对应的三枚铜钱正反**（`●○○　少阳 一背二字（静）`），不熟悉术语也能填 |
 | 电脑摇卦 | 模拟抛三枚铜钱，逐爻进行，每次可先确认；随机数用系统加密随机源，正反完全随机；每爻结果同步显示三枚铜钱标记 |
 | 排盘 | 主卦／变卦、卦宫与世应、六亲、纳甲干支、六神、旬空、月破日冲、神煞、伏神、纳音、旺相休囚、十二长生、化进化退 |
-| 断卦 | **通俗总结**（把术语翻成白话的结论＋分段说明＋怎么办）置于末尾，前面为用神／原神／忌神／仇神、生克合冲刑害、六神取象、纳音取象、伏神得失、反吟伏吟、三合三会、应期提示，**每条都注明典籍出处** |
+| 断卦 | **由模型依典籍推理**（消耗 token）：盘面事实由规则引擎算出后作为不可篡改的事实交给模型，模型只做推理与表达。输出含用神取用／旺衰／动变／六神取象／世应／综合判断／结论清单／**通俗总结**，**每条断语注明典籍出处**，并硬性约束「不得改动盘面、无据不作推断、不许套话、不许迎合」。可切换为**规则断卦**（内置引擎、零 token、离线可用） |
 | 一卦一断 | 解读之后带一个**追问对话框**（明确标注「一卦一断」）：只答与本次所问之事直接相关的问题，回答由模型依本卦生成；越界提问由 Host 侧**确定性判定**直接拒答（不消耗模型），并可设追问次数上限 |
 | 界面 | 主面板「六爻」卦盘 + 侧栏图标；先天八卦图作为**应用基础背景层的固定底纹**（不遮盖文字与对话框、不拦截点击） |
 | 关于 | 面板右上角「关于」：版本与许可、已验证环境、数据透明声明、免责与边界、**历法自检锚点**（干支历与通胜万年历的核对结果），以及咨询与赞助方式 |
@@ -43,11 +43,17 @@ DeepSeek Harness 的六爻插件：**先天八卦图为盘，火珠林纳甲为�
     coinAnimation: true     # 铜钱动画
     requireConfirmEachToss: true  # 每抛一次前确认
     citationStrict: true    # 只输出典籍有明文依据的断语
+    analysisMode: ai        # 断卦方式：ai 由模型依典籍推理（消耗 token，默认）｜rule 内置规则引擎（零 token、离线可用）
     followUpEnabled: true   # 解读之后提供「一卦一断」追问对话框
     maxFollowUps: 3         # 同一卦允许追问的次数上限
-    followUpProvider: ""    # 追问模型；留空用当前默认模型
+    followUpProvider: ""    # 断卦与追问所用模型；留空用当前默认模型
     followUpModel: ""
 ```
+
+> **断卦由谁做**：排盘（干支、纳甲、六亲、六神、世应、旬空、旺衰、长生、伏神、纳音）始终由内置规则引擎算出，
+> 作为**不可篡改的事实**写进提示词；模型只负责依典籍推理与表达，并被硬性约束「不得改动盘面、无据不作推断」。
+> 这样既保证盘面零错误（模型不会把甲子写成甲丑），又让断卦具备语义理解能力。
+> 设为 `rule` 时改用内置规则引擎断卦，**不消耗任何 token**，适合离线或不想花额度时使用；界面上也可随时切换。
 
 彻底停用整个插件（连 Host 半都不挂载）：
 
@@ -89,7 +95,7 @@ DeepSeek Harness 的六爻插件：**先天八卦图为盘，火珠林纳甲为�
 **方式一：git 规格（在线，需机器上有 `git`）**
 
 ```bash
-dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
+dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.2.0"
 ```
 
 实测 2.5–3.3 秒装完（DSH `0.2.0-rc.2` / pnpm `11.7.0`）。
@@ -97,8 +103,8 @@ dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
 **方式二：下载 tarball 后本地安装**
 
 ```bash
-# 先从 Release 页面下载 dsh-liuyao-0.1.0.tgz
-dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz
+# 先从 Release 页面下载 dsh-liuyao-0.2.0.tgz
+dsh plugin --profile web add ./dsh-liuyao-0.2.0.tgz
 ```
 
 实测 330ms 装完，截图等文件全部随包。
@@ -106,7 +112,7 @@ dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz
 装完 **重启 DSH**，再刷新界面，出现「六爻」主面板与侧栏图标。
 
 > ⚠️ **不要**用 Release 的 tarball 直链安装：
-> `dsh plugin add "https://github.com/…/dsh-liuyao-0.1.0.tgz"` 目前会报
+> `dsh plugin add "https://github.com/…/dsh-liuyao-0.2.0.tgz"` 目前会报
 > `ERR_PNPM_MISSING_TARBALL_INTEGRITY`。这是 DSH 安装器与 pnpm 的问题（远程 tarball 的
 > lockfile 条目缺 `integrity` 字段），不是包本身的问题——同一个 tarball 走本地路径就能装上。
 > 根因与已排除项见 [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md)。

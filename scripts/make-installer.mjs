@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = process.argv[2]
-const pkgName = process.argv[3] ?? 'dsh-liuyao-0.1.0.tar.gz'
+const pkgName = process.argv[3] ?? 'dsh-liuyao-0.2.0.tar.gz'
 
 if (!outDir) {
   console.error('用法: node scripts/make-installer.mjs <输出目录> [包文件名]')
