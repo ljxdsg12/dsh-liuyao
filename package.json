@@ -59,13 +59,13 @@
   ],
   "license": "MIT",
   "author": "dsh-liuyao contributors",
-  "homepage": "https://github.com/LJXDSG12/dsh-liuyao#readme",
+  "homepage": "https://github.com/ljxdsg12/dsh-liuyao#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LJXDSG12/dsh-liuyao.git"
+    "url": "git+https://github.com/ljxdsg12/dsh-liuyao.git"
   },
   "bugs": {
-    "url": "https://github.com/LJXDSG12/dsh-liuyao/issues"
+    "url": "https://github.com/ljxdsg12/dsh-liuyao/issues"
   },
   "scripts": {
     "test": "node test/run-all.mjs"

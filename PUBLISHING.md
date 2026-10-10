@@ -12,7 +12,7 @@
 - [x] **英文 README**（`README.en.md`）——社区目录与国外用户需要
 - [x] **`npm test` 入口**：`node test/run-all.mjs`，8 个套件
 - [x] **一条命令装成已实测**（见下）
-- [x] **仓库地址已填**：`package.json` 的 homepage / repository / bugs 均指向 `https://github.com/LJXDSG12/dsh-liuyao`
+- [x] **仓库地址已填**：`package.json` 的 homepage / repository / bugs 均指向 `https://github.com/ljxdsg12/dsh-liuyao`
 - [ ] **截图**：至少 4 张（见第三节清单）
 - [ ] **打出 tarball 并上传 GitHub Releases**
 - [ ] **提 PR 到 community 目录**
@@ -25,7 +25,7 @@ node "<pnpm 路径>" pack --pack-destination .
 
 # 2) 建仓库并推送
 git init; git add .; git commit -m "dsh-liuyao 0.1.0"
-git remote add origin https://github.com/LJXDSG12/dsh-liuyao.git
+git remote add origin https://github.com/ljxdsg12/dsh-liuyao.git
 git push -u origin main
 
 # 3) 打 tag、建 Release，把 dsh-liuyao-0.1.0.tgz 作为附件上传
@@ -35,20 +35,45 @@ git tag v0.1.0; git push origin v0.1.0
 Release 附件上传后，用户这条命令即可安装：
 
 ```bash
-dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
+dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
 ```
 
 ### 安装链路实测记录（本机，已跑通）
 
+**发布前（本地 tarball）**
+
 | 步骤 | 结果 |
 |---|---|
-| `node pnpm.cjs pack` | 产出 `dsh-liuyao-0.1.0.tgz`，白名单生效（无 test/ 与 node_modules） |
+| `node pnpm.cjs pack` | 产出 `dsh-liuyao-0.1.0.tgz`（80 KB），白名单生效（无 test/ 与 node_modules） |
 | `dsh plugin --profile liuyaotest add <本地 tgz>` | **exit 0**，301ms；profile 自动创建、依赖写入、bundles 自动追加 `dsh-liuyao` |
 | 从安装目录 import 已装包 | `name=liuyao`、工具 3 个、路由 7 条；`山火贲` 排盘正常、文本含通俗总结 |
-| 是否触发 registry 证书错误 | **否**（tarball 路径不查 registry；此前失败是 pnpm 供应链策略联网校验所致） |
 
-> 注：早先 `dsh plugin add <本地目录>` 失败于 `DEPTH_ZERO_SELF_SIGNED_CERT`。
-> 因此**推荐发布 tarball**，而不是让用户直接从 git 仓库安装。
+**发布后（公网 Release URL，模拟终端用户）**
+
+| 步骤 | 结果 |
+|---|---|
+| `dsh plugin --profile verifyinstall add "https://github.com/…/v0.1.0/dsh-liuyao-0.1.0.tgz"` | **exit 0，2.5 秒**；profile 依赖写入该 URL，bundles 追加 `dsh-liuyao` |
+| 从安装目录 import 已装包 | 工具 3 个、端点 7 条；`山火贲 → 地雷复` 排盘、8 个分析章节、含通俗总结与断卦依据 |
+| 附件完整性 | 三方 SHA256 一致：本地 = 公网下载 = GitHub API 报告的 `311f9904…5161`，81,884 字节 |
+
+### ⚠️ 两个必须知道的安装前提（都会导致"看起来是插件坏了"）
+
+1. **必须走代理，且要给 Node/pnpm 显式设代理环境变量。**
+   本机系统代理为 `127.0.0.1:7897`，但 **Node 的 fetch（undici）不读 Windows 系统代理**——
+   `curl` 与 `git` 会读，所以会出现"curl 能下载、pnpm 却超时/证书错"的假象。实测：
+
+   ```powershell
+   $env:HTTP_PROXY='http://127.0.0.1:7897'; $env:HTTPS_PROXY='http://127.0.0.1:7897'
+   $env:NODE_USE_ENV_PROXY='1'
+   dsh plugin --profile web add "<Release URL>"
+   ```
+
+   不带这三个变量时表现为 `TypeError: fetch failed`（`UND_ERR_CONNECT_TIMEOUT`）；
+   若代理做了 TLS 拦截则表现为 `DEPTH_ZERO_SELF_SIGNED_CERT`。**都要把"先设代理"写进用户须知。**
+
+2. **优先发布 tarball，不要引导用户 `add github:<owner>/<repo>`。**
+   从 git 源安装会让 pnpm 对着 registry 解析整份 lockfile，在受限网络下必然失败。
+   tarball 路径不查 registry，2.5 秒装完。
 
 ## 三、截图清单（我无法代做，需你在浏览器里截）
 
@@ -71,15 +96,15 @@ dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/do
 {
   "name": "dsh-liuyao",
   "owner": "<your-github-id>",
-  "url": "https://github.com/LJXDSG12/dsh-liuyao",
+  "url": "https://github.com/ljxdsg12/dsh-liuyao",
   "description": {
     "en": "Six-yao (I Ching) divination for DeepSeek Harness: xiantian bagua backdrop, Zhouyi opening verse, manual or coin-toss casting, najia charting with six relatives / six gods / void / hidden spirits, strictly sourced interpretation, plain-language recap, and a one-hexagram-one-question follow-up dialog.",
     "zh": "六爻算卦插件：先天八卦盘背景、周易开场辞、手工或电脑摇卦、六亲/六神/旬空/伏神纳甲排盘、逐条注明典籍出处的解读、通俗总结，以及「一卦一断」追问对话框。"
   },
   "category": "fun",
   "npm": null,
-  "install": "dsh plugin --profile web add \"https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz\"",
-  "screenshots": ["https://raw.githubusercontent.com/LJXDSG12/dsh-liuyao/HEAD/assets/screenshot-1.png"]
+  "install": "dsh plugin --profile web add \"https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz\"",
+  "screenshots": ["https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/HEAD/assets/screenshot-1.png"]
 }
 ```
 

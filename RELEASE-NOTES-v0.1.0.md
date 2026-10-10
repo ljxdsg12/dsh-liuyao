@@ -5,7 +5,7 @@ DeepSeek Harness 的六爻算卦插件：**先天八卦图为盘，火珠林纳�
 ## 安装
 
 ```bash
-dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
+dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
 ```
 
 装完**重启 DSH**，再刷新界面，会出现「六爻」主面板与侧栏图标。
@@ -34,4 +34,4 @@ dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/do
 
 ## 许可
 
-MIT。详见仓库内 [LICENSE](https://github.com/LJXDSG12/dsh-liuyao/blob/main/LICENSE)。
+MIT。详见仓库内 [LICENSE](https://github.com/ljxdsg12/dsh-liuyao/blob/main/LICENSE)。

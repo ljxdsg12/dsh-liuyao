@@ -10,7 +10,7 @@
 | 项目 | 状态 |
 |---|---|
 | 许可 | `LICENSE`（MIT + 四条免责附加说明）✅ |
-| 元数据 | `package.json`：版本 `0.1.0`、无 `private`、三处地址指向 `LJXDSG12/dsh-liuyao` ✅ |
+| 元数据 | `package.json`：版本 `0.1.0`、无 `private`、三处地址指向 `ljxdsg12/dsh-liuyao` ✅ |
 | 文档 | `README.md`（中文）、`README.en.md`（英文）、`PUBLISHING.md`、`VERIFICATION.md` ✅ |
 | 本地仓库 | 已 `git init`，**16 个提交**，已打标签 `v0.1.0`，工作区干净 ✅ |
 | 发布产物 | `dsh-liuyao-0.1.0.tgz`（80 KB，19 个条目）✅ |
@@ -47,7 +47,7 @@ GitHub「创建新的仓库」表单里：
 
 | 字段 | 填 |
 |---|---|
-| 所有者 | `LJXDSG12` |
+| 所有者 | `ljxdsg12` |
 | 存储库名称 | **`dsh-liuyao`** ← 把 `123456` 改掉 |
 | 描述 | 可复制 `catalog-entry.json` 里 `description.zh` 那段 |
 | 可见度 | 公共 |
@@ -64,7 +64,7 @@ GitHub「创建新的仓库」表单里：
 
 ```powershell
 cd C:\Users\24568\Documents\deepseek-harness\default-workspace\liuyao-dsh-plugin
-git remote add origin https://github.com/LJXDSG12/dsh-liuyao.git
+git remote add origin https://github.com/ljxdsg12/dsh-liuyao.git
 git push -u origin main
 git push origin v0.1.0
 ```
@@ -73,13 +73,13 @@ git push origin v0.1.0
 
 1. 打开 <https://github.com/settings/tokens> → Generate new token (classic)
 2. 勾选 **`repo`**（含 `public_repo`）
-3. 生成后复制那串 `ghp_...`，**当密码粘贴**，用户名填 `LJXDSG12`
+3. 生成后复制那串 `ghp_...`，**当密码粘贴**，用户名填 `ljxdsg12`
 
 > 我把命令写好但没替你执行——因为执行需要你的 token，而 token 不应该给我。
 
 ## 第 3 步：建 Release 并上传 tarball
 
-1. 打开 `https://github.com/LJXDSG12/dsh-liuyao/releases/new`
+1. 打开 `https://github.com/ljxdsg12/dsh-liuyao/releases/new`
 2. **Choose a tag** 选已推送的 `v0.1.0`
 3. 标题：`dsh-liuyao v0.1.0`
 4. 说明：把 [RELEASE-NOTES-v0.1.0.md](RELEASE-NOTES-v0.1.0.md) 全文粘进去
@@ -89,7 +89,7 @@ git push origin v0.1.0
 发布后这条命令就能装（我已在干净 profile 里实测过同样的产物）：
 
 ```bash
-dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
+dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
 ```
 
 ## 第 4 步：截图 + 提收录 PR
