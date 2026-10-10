@@ -35,6 +35,7 @@ function summarizeYong(yong) {
   return {
     topic: yong.topic,
     use: yong.use,
+    needsRole: yong.needsRole ?? false,
     rule: yong.rule,
     present: yong.present,
     onLines: yong.lines.map(l => `${l.positionName}${l.stem}${l.branch}${l.element}(${l.scores.verdict})`),
@@ -47,6 +48,17 @@ function summarizeYong(yong) {
 // —— 用神 ——
 function sectionUseGod(chart, yong) {
   if (!yong.use) {
+    // 婚姻感情类问法：身份未辨则用神不定，照实说明该补什么，不代为猜测
+    if (yong.needsRole) {
+      return {
+        title: '用神取用',
+        points: [{
+          text: yong.needsRoleNote,
+          source: '《增删卜易·用神章》',
+        }],
+        needTopic: true,
+      }
+    }
     return {
       title: '用神取用',
       points: [{
