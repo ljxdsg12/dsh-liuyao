@@ -85,13 +85,33 @@ DeepSeek Harness 的六爻插件：**先天八卦图为盘，火珠林纳甲为�
 
 ## 三、安装
 
-```powershell
-dsh plugin --profile desktop add <本包路径>
+**方式一：git 规格（在线，需机器上有 `git`）**
+
+```bash
+dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
 ```
 
-> 若网络不可达（pnpm 无法访问 registry 校验供应链策略），安装会停在这一步；
-> 此时手工完成等价的两步即可：把包目录链接/复制到 `<profile>/node_modules/dsh-liuyao`，
-> 并把它加进 profile 的 `package.json` → `dsh.profile.bundles`（本机已按此方式装好）。
+实测 2.5–3.3 秒装完（DSH `0.2.0-rc.2` / pnpm `11.7.0`）。
+
+**方式二：下载 tarball 后本地安装**
+
+```bash
+# 先从 Release 页面下载 dsh-liuyao-0.1.0.tgz
+dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz
+```
+
+实测 330ms 装完，截图等文件全部随包。
+
+装完 **重启 DSH**，再刷新界面，出现「六爻」主面板与侧栏图标。
+
+> ⚠️ **不要**用 Release 的 tarball 直链安装：
+> `dsh plugin add "https://github.com/…/dsh-liuyao-0.1.0.tgz"` 目前会报
+> `ERR_PNPM_MISSING_TARBALL_INTEGRITY`。这是 DSH 安装器与 pnpm 的问题（远程 tarball 的
+> lockfile 条目缺 `integrity` 字段），不是包本身的问题——同一个 tarball 走本地路径就能装上。
+> 根因与已排除项见 [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md)。
+>
+> git 规格请用**分支或标签**（`#v0.1.0`、`#main`），**不要用 commit 短哈希**：
+> pnpm 用 `git ls-remote` 解析引用，它只返回分支与标签。
 
 随后在 profile 的 `cordis.patch.yml` 追加一层：
 

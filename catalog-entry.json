@@ -8,15 +8,18 @@
   },
   "category": "fun",
   "npm": null,
-  "tarball": "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz",
   "version": "0.1.0",
   "capabilities": [],
   "capabilityRedLines": [],
-  "install": "dsh plugin --profile web add \"https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz\"",
+  "install": "dsh plugin --profile web add \"github:ljxdsg12/dsh-liuyao#v0.1.0\"",
+  "notes": {
+    "en": "Also installable from the release tarball after downloading it: dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz. Installing the release tarball directly by URL currently fails with ERR_PNPM_MISSING_TARBALL_INTEGRITY (a DSH installer / pnpm issue, not a package problem); see KNOWN-ISSUE-install.md.",
+    "zh": "也可下载 Release 里的 tarball 后本地安装：dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz。直接用 Release 的 tarball 直链安装目前会报 ERR_PNPM_MISSING_TARBALL_INTEGRITY（属 DSH 安装器与 pnpm 的问题，非包本身问题），详见 KNOWN-ISSUE-install.md。"
+  },
   "screenshots": [
-    "https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/HEAD/assets/screenshot-1.png",
-    "https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/HEAD/assets/screenshot-2.png",
-    "https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/HEAD/assets/screenshot-3.png",
-    "https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/HEAD/assets/screenshot-4.png"
+    "https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/v0.1.0/assets/screenshot-1.png",
+    "https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/v0.1.0/assets/screenshot-2.png",
+    "https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/v0.1.0/assets/screenshot-3.png",
+    "https://raw.githubusercontent.com/ljxdsg12/dsh-liuyao/v0.1.0/assets/screenshot-4.png"
   ]
 }

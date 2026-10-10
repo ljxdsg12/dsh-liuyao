@@ -32,24 +32,29 @@ strictly sourced interpretation · one-hexagram-one-question follow-up dialog.
 
 ## Install
 
-Download the release tarball and install it:
+Install from the tagged git reference (requires `git` on your machine):
+
+```bash
+dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
+```
+
+Or download `dsh-liuyao-0.1.0.tgz` from the release page and install that file:
 
 ```bash
 dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz
 ```
 
-Or install straight from the GitHub release URL:
+Either way the installer registers the bundle in your profile automatically. **Restart DSH**, then
+refresh the GUI — a **六爻** panel and sidebar icon appear.
 
-```bash
-dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
-```
-
-The installer registers the bundle in your profile automatically. **Restart DSH**, then refresh the GUI.
-A **六爻** panel and sidebar icon appear.
-
-> Prefer the tarball over `add github:ljxdsg12/dsh-liuyao`. Installing from a git source makes pnpm
-> resolve the whole lockfile against the npm registry, which fails behind TLS-intercepting proxies
-> (`DEPTH_ZERO_SELF_SIGNED_CERT`). The tarball path installs in about two seconds and touches no registry.
+> **Do not** install the release tarball directly by URL
+> (`dsh plugin add "https://github.com/…/dsh-liuyao-0.1.0.tgz"`). DSH's installer currently writes a
+> lockfile entry without an `integrity` field for remote tarballs, and pnpm then refuses with
+> `ERR_PNPM_MISSING_TARBALL_INTEGRITY`. This is an installer/pnpm issue, not a packaging problem —
+> the same tarball installs fine from a local path. See [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md).
+>
+> Use a **branch or tag** reference (`#v0.1.0`, `#main`), never a commit SHA: pnpm resolves git refs
+> with `git ls-remote`, which only advertises branches and tags.
 
 ## Configuration
 
