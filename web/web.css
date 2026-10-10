@@ -1,0 +1,108 @@
+/* ============================================================
+   网页专属样式
+   ------------------------------------------------------------
+   插件的样式由 scripts/extract-styles.py 从 client/client.js 提取，
+   重新生成时会被覆盖；所以网页特有的类写在这里，index.html 单独引入。
+   ============================================================ */
+
+/* 起卦方式按钮组 */
+.ly-modes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* 表单行：标签 + 控件 */
+.ly-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+.ly-input {
+  flex: 1 1 200px; min-width: 0; max-width: 100%;
+  padding: 6px 10px; font: inherit;
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-md);
+  outline: none;
+}
+.ly-input:focus { border-color: var(--dsw-alias-brand-primary); }
+.ly-input.wide { flex: 1 1 320px; }
+.ly-select {
+  width: 100%; min-width: 0; max-width: 100%;
+  padding: 6px 8px; font: inherit;
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-md);
+}
+
+/* 进度提示与错误 */
+.ly-error {
+  margin-top: 10px; padding: 8px 12px;
+  color: var(--dsw-alias-state-error-primary);
+  background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dsw-alias-state-error-primary) 30%, transparent);
+  border-radius: var(--dsw-radius-md);
+}
+
+/* 摇卦区 */
+.ly-tossbox { margin: 12px 0; padding: 12px 14px; border: 1px dashed var(--dsw-alias-border-l2); border-radius: var(--dsw-radius-md); }
+.ly-tosshead { font-weight: 600; margin-bottom: 8px; }
+.ly-tosslist { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 6px 18px; margin-top: 10px; }
+.ly-tossrow { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted var(--dsw-alias-border-l1); padding: 3px 0; min-width: 0; }
+.ly-tossname { color: var(--dsw-alias-label-secondary); flex: 0 0 auto; }
+
+/* 铜钱 */
+.ly-coins { display: flex; gap: 8px; margin: 6px 0; }
+.ly-coin {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l2);
+}
+.ly-coin.back {
+  color: #fff;
+  background: var(--dsw-alias-brand-primary);
+  border-color: var(--dsw-alias-brand-primary);
+}
+
+/* 表格：窄屏横向滚动，避免溢出 */
+.ly-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+.ly-table-wrap { overflow-x: auto; }
+.ly-table th, .ly-table td { padding: 6px 8px; border-bottom: 1px solid var(--dsw-alias-border-l1); text-align: left; white-space: nowrap; }
+.ly-table th { color: var(--dsw-alias-label-secondary); font-weight: 500; }
+.ly-gua { font-family: var(--dsw-font-mono); letter-spacing: 1px; }
+
+/* 旺衰行 */
+.ly-states { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--dsw-alias-label-secondary); font-size: 12px; margin: 6px 0 2px; }
+.ly-states-h { color: var(--dsw-alias-label-primary); }
+.ly-state { white-space: nowrap; }
+
+/* 原始排盘文本 */
+.ly-raw { margin-top: 14px; }
+.ly-raw summary { cursor: pointer; color: var(--dsw-alias-brand-primary); font-size: 13px; }
+.ly-pre {
+  margin-top: 8px; padding: 12px; overflow: auto;
+  font-family: var(--dsw-font-mono); font-size: 12px; line-height: 1.7;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: var(--dsw-radius-md);
+  white-space: pre; color: var(--dsw-alias-label-primary);
+}
+
+/* 分析区锚点（用于滚动定位） */
+.ly-analysis-anchor { display: block; height: 1px; }
+
+/* 按钮的 primary / ghost 变体（插件里由 DSH 提供，网页需自定义） */
+.ly-btn {
+  padding: 6px 14px; font: inherit; cursor: pointer;
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-md);
+  transition: background .15s, border-color .15s;
+}
+.ly-btn:hover { border-color: var(--dsw-alias-brand-primary); }
+.ly-btn.primary {
+  color: #fff;
+  background: var(--dsw-alias-brand-primary);
+  border-color: var(--dsw-alias-brand-primary);
+}
+.ly-btn.primary:hover { filter: brightness(1.08); }
+.ly-btn.ghost { background: transparent; }

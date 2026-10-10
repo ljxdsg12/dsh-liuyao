@@ -1,0 +1,183 @@
+/* ============================================================
+   主题变量：插件里由 DSH 提供，网页版需要自己定义
+   ============================================================ */
+:root {
+  --dsw-alias-bg-base: #ffffff;
+  --dsw-alias-bg-layer-1: #f7f8fa;
+  --dsw-alias-bg-layer-2: #ffffff;
+  --dsw-alias-border-l1: #e8eaed;
+  --dsw-alias-border-l2: #dcdfe4;
+  --dsw-alias-label-primary: #1f2329;
+  --dsw-alias-label-secondary: #646a73;
+  --dsw-alias-brand-primary: #3370ff;
+  --dsw-alias-state-business-primary: #3370ff;
+  --dsw-alias-state-error-primary: #d83931;
+  --dsw-alias-state-success-primary: #2ea121;
+  --dsw-alias-state-warn-primary: #dc9b04;
+  --dsw-radius-md: 8px;
+  --dsw-radius-lg: 12px;
+  --dsw-shadow-lv1: 0 1px 2px rgba(0, 0, 0, .05);
+  --dsw-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* 深色模式：跟随系统 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --dsw-alias-bg-base: #17181c;
+    --dsw-alias-bg-layer-1: #1f2126;
+    --dsw-alias-bg-layer-2: #232529;
+    --dsw-alias-border-l1: #2f3238;
+    --dsw-alias-border-l2: #3a3e45;
+    --dsw-alias-label-primary: #e8eaed;
+    --dsw-alias-label-secondary: #a2a7ad;
+    --dsw-alias-brand-primary: #4a8cff;
+    --dsw-alias-state-business-primary: #4a8cff;
+    --dsw-alias-state-error-primary: #f56c6c;
+    --dsw-alias-state-success-primary: #4ecb73;
+    --dsw-alias-state-warn-primary: #e6a23c;
+    --dsw-shadow-lv1: 0 1px 2px rgba(0, 0, 0, .3);
+  }
+}
+
+/* ============================================================
+   网页外壳（插件里由 DSH 的容器提供这些，网页需自己写）
+   ============================================================ */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+  font: 14px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  min-height: 100vh;
+}
+.ly-page { max-width: 1080px; margin: 0 auto; padding: 24px 18px 64px; }
+.ly-footer {
+  max-width: 1080px; margin: 0 auto; padding: 0 18px 40px;
+  color: var(--dsw-alias-label-secondary); font-size: 12px; line-height: 1.9;
+}
+.ly-footer a { color: var(--dsw-alias-brand-primary); text-decoration: none; }
+.ly-footer a:hover { text-decoration: underline; }
+
+/* 插件里面板自带滚动容器；网页版直接铺开即可 */
+.ly-panel { height: auto !important; overflow: visible !important; }
+.ly-panel-body { min-height: 0 !important; padding: 0 !important; }
+
+/* ============================================================
+   以下为插件原有样式，原样搬运
+   ============================================================ */
+.ly-panel-body{position:relative;min-height:100%;box-sizing:border-box;padding:18px 18px 32px}
+.ly-wrap{max-width:1080px;margin:0 auto;color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.7}
+.ly-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.ly-title{font-size:20px;font-weight:600;letter-spacing:.12em}
+.ly-sub{color:var(--dsw-alias-label-secondary);font-size:12px}
+.ly-about{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-lg,12px);padding:14px 16px;margin-top:12px;
+background:var(--dsw-alias-bg-layer-2);box-shadow:var(--dsw-shadow-lv1,0 1px 2px rgba(0,0,0,.05))}
+.ly-about-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l1)}
+.ly-about-name{font-size:16px;font-weight:600;letter-spacing:.04em}
+.ly-about-ver{font-size:12px;color:var(--dsw-alias-brand-primary);border:1px solid var(--dsw-alias-border-l2);border-radius:999px;padding:1px 8px}
+.ly-about-lic{font-size:12px;color:var(--dsw-alias-label-secondary)}
+.ly-about-sec{margin-top:14px;min-width:0}
+.ly-about-sec h4{margin:0 0 6px;font-size:13px;font-weight:600;letter-spacing:.04em}
+.ly-about-ul{margin:0;padding-left:18px;color:var(--dsw-alias-label-secondary)}
+.ly-about-ul li{margin:3px 0;overflow-wrap:anywhere}
+.ly-about-row{display:flex;gap:10px;align-items:baseline;margin-top:4px;min-width:0;flex-wrap:wrap}
+.ly-about-k{color:var(--dsw-alias-label-secondary);font-size:12px;flex:0 0 auto}
+.ly-about-v{min-width:0;overflow-wrap:anywhere}
+.ly-about-a{color:var(--dsw-alias-brand-primary);text-decoration:none;overflow-wrap:anywhere}
+.ly-about-a:hover{text-decoration:underline}
+.ly-about-wechat{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
+.ly-about-code{font-family:var(--dsw-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace);font-size:12px;
+background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l2);border-radius:6px;padding:2px 7px;overflow-wrap:anywhere}
+.ly-card{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-lg,12px);padding:14px 16px;margin-top:14px;
+background:var(--dsw-alias-bg-layer-2);box-shadow:var(--dsw-shadow-lv1,0 1px 2px rgba(0,0,0,.05))}
+.ly-opening{font-size:14px;line-height:2;color:var(--dsw-alias-label-primary);letter-spacing:.02em;
+border-left:3px solid var(--dsw-alias-state-business-primary);padding-left:12px;margin:2px 0}
+.ly-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.ly-label{color:var(--dsw-alias-label-secondary);font-size:12px;min-width:76px}
+.ly-input,.ly-select{background:var(--dsw-alias-bg-layer-1,#fff);color:var(--dsw-alias-label-primary);
+border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md,8px);padding:6px 9px;font:inherit;font-size:13px}
+.ly-input:focus,.ly-select:focus{outline:none;border-color:var(--dsw-alias-state-business-primary)}
+.ly-btn{background:var(--dsw-alias-state-business-primary);color:#fff;border:none;border-radius:var(--dsw-radius-md,8px);
+padding:7px 16px;font:inherit;font-size:13px;cursor:pointer;letter-spacing:.06em}
+.ly-btn:hover{filter:brightness(1.08)}
+.ly-btn[disabled]{opacity:.45;cursor:not-allowed}
+.ly-btn.ghost{background:transparent;color:var(--dsw-alias-label-primary);border:1px solid var(--dsw-alias-border-l2)}
+.ly-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px;margin-top:8px}
+.ly-slot{overflow:hidden;border:1px dashed var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md,9px);
+padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:6px;
+min-width:0;max-width:100%;box-sizing:border-box}
+.ly-slot.filled{border-style:solid;border-color:var(--dsw-alias-state-business-primary)}
+.ly-slot-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.ly-slot-head>span:first-child{flex:none;font-weight:600}
+.ly-slot-head .ly-chips{min-width:0;flex-wrap:wrap;justify-content:flex-end}
+.ly-slot .ly-select{width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+.ly-status{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+border:1px dashed var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md,9px);padding:8px 10px;font-size:12px;min-width:0}
+.ly-coins{display:flex;gap:6px;margin-top:8px}
+.ly-coin{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-size:12px;border:2px solid #b08d57;background:#e8d9b5;color:#5a4322;font-weight:600}
+.ly-coin.back{background:#c9a227;color:#3a2a00}
+.ly-coin.spin{animation:ly-spin .5s linear infinite}
+@keyframes ly-spin{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+.ly-chips{display:inline-flex;gap:3px;vertical-align:middle;margin-right:2px}
+.ly-chip{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;
+border-radius:10px;border:1.5px solid var(--dsw-alias-border-l2);background:transparent;
+color:var(--dsw-alias-label-secondary);font-size:11px;line-height:1;vertical-align:middle}
+.ly-chip.back{border-color:#b08d57;background:#c9a227;color:#3a2a00;font-weight:600}
+.ly-chip.dim{opacity:.6}
+.ly-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.ly-table th,.ly-table td{border:1px solid var(--dsw-alias-border-l2);padding:4px 8px;text-align:left;white-space:nowrap}
+.ly-table th{background:var(--dsw-alias-bg-layer-1,#fafafa);font-weight:500;color:var(--dsw-alias-label-secondary);font-size:12px}
+.ly-gua{font-family:ui-monospace,Consolas,monospace;letter-spacing:1px;font-size:13px}
+.ly-mark{color:var(--dsw-alias-state-business-primary);font-weight:600}
+.ly-dim{color:var(--dsw-alias-label-secondary)}
+.ly-key{color:var(--dsw-alias-state-error-primary);font-weight:600}
+.ly-good{color:var(--dsw-alias-state-success-primary,#1a7f37);font-weight:600}
+.ly-tag{display:inline-block;font-size:11px;padding:0 5px;border-radius:5px;margin-left:4px;
+border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
+.ly-sec{margin-top:16px}
+.ly-summary{margin-top:16px;padding:14px 16px;border-radius:var(--dsw-radius-lg,12px);
+border:1px solid var(--dsw-alias-state-business-primary);
+background:color-mix(in srgb, var(--dsw-alias-state-business-primary) 7%, transparent)}
+.ly-summary-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.ly-summary-tag{font-size:11px;padding:1px 7px;border-radius:6px;color:#fff;
+background:var(--dsw-alias-state-business-primary);letter-spacing:.08em}
+.ly-summary-title{font-size:17px;font-weight:600;letter-spacing:.04em}
+.ly-summary-line{font-size:14px;line-height:1.85;font-weight:500}
+.ly-summary-p{margin:8px 0 0;font-size:13px;line-height:1.85;color:var(--dsw-alias-label-primary)}
+.ly-summary-advice{margin-top:10px;padding-top:8px;border-top:1px dashed var(--dsw-alias-border-l2)}
+.ly-summary-advice-h{font-size:12px;font-weight:600;color:var(--dsw-alias-label-secondary);margin-bottom:4px}
+.ly-summary-advice-i{font-size:13px;line-height:1.85}
+.ly-ask{margin-top:18px;padding:14px 16px;border-radius:var(--dsw-radius-lg,12px);
+border:1px dashed var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1,#fafafa)}
+.ly-ask-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ly-ask-rule{font-size:12px;font-weight:600;letter-spacing:.16em;padding:2px 9px;border-radius:6px;
+color:#fff;background:var(--dsw-alias-state-business-primary)}
+.ly-ask-title{font-size:14px;font-weight:600}
+.ly-ask-count{margin-left:auto;font-size:12px;color:var(--dsw-alias-label-secondary)}
+.ly-ask-sub{margin-top:6px;font-size:12px;line-height:1.8;color:var(--dsw-alias-label-secondary)}
+.ly-ask-empty{margin-top:8px;font-size:12px;color:var(--dsw-alias-label-secondary);opacity:.85}
+.ly-ask-turns{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.ly-ask-turn{border-radius:var(--dsw-radius-md,9px);padding:8px 10px;font-size:13px;line-height:1.8;
+border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);min-width:0}
+.ly-ask-turn.user{background:color-mix(in srgb, var(--dsw-alias-state-business-primary) 8%, transparent);
+border-color:color-mix(in srgb, var(--dsw-alias-state-business-primary) 45%, transparent)}
+.ly-ask-who{font-size:11px;font-weight:600;color:var(--dsw-alias-label-secondary);margin-bottom:3px}
+.ly-ask-text{white-space:pre-wrap;overflow-wrap:anywhere}
+.ly-ask-text.refused{color:var(--dsw-alias-state-warn-primary)}
+.ly-ask-text.failed{color:var(--dsw-alias-state-error-primary)}
+.ly-ask-notice{margin-top:8px;font-size:12px;color:var(--dsw-alias-state-warn-primary)}
+.ly-ask-form{display:flex;gap:8px;align-items:flex-end;margin-top:10px}
+.ly-ask-input{flex:1;min-width:0;resize:vertical;background:var(--dsw-alias-bg-layer-2,#fff);
+color:var(--dsw-alias-label-primary);border:1px solid var(--dsw-alias-border-l2);
+border-radius:var(--dsw-radius-md,8px);padding:7px 9px;font:inherit;font-size:13px;line-height:1.6;box-sizing:border-box}
+.ly-ask-input:focus{outline:none;border-color:var(--dsw-alias-state-business-primary)}
+.ly-ask-input[disabled]{opacity:.6;cursor:not-allowed}
+.ly-sec h4{margin:0 0 6px;font-size:13px;font-weight:600;letter-spacing:.06em;
+border-left:3px solid var(--dsw-alias-state-business-primary);padding-left:8px}
+.ly-src{color:var(--dsw-alias-label-secondary);font-size:11.5px}
+.ly-err{color:var(--dsw-alias-state-error-primary);font-size:12px;margin-top:6px}
+.ly-mono{font-family:ui-monospace,Consolas,monospace;white-space:pre-wrap;font-size:12.5px;line-height:1.75}
+.ly-foot{margin-top:16px;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.9}
+.ly-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--dsw-alias-label-secondary)}
