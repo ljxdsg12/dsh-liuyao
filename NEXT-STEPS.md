@@ -18,13 +18,20 @@
 | 自检 | `npm test` → **8/8 套件通过** |
 | 许可 | `LICENSE`（MIT + 四条免责附加说明），GitHub 识别为 `Other`（自定义许可） |
 
-用户的安装命令（已验证可用）：
+用户的安装命令（**两种都已实测可用**）：
 
 ```bash
-dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
+# 方式一：git 规格（在线，需 git）
+dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
+
+# 方式二：下载 Release 附件后本地安装
+dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz
 ```
 
-## 二、⚠️ 安装前提：必须给 Node/pnpm 设代理
+> ⚠️ Release 附件的**直链安装当前不可用**（`ERR_PNPM_MISSING_TARBALL_INTEGRITY`，属 DSH 安装器与
+> pnpm 的问题）。根因、已排除项与替代方案见 [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md)。
+
+## 二、⚠️ 安装前提：受限网络下必须给 Node/pnpm 设代理
 
 本机系统代理是 `127.0.0.1:7897`。**Node 的 fetch（undici）不读 Windows 系统代理**，
 而 `curl` 与 `git` 会读——所以会出现"curl 能下载、pnpm 却失败"的假象。实测表现：
@@ -40,8 +47,10 @@ dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/do
 $env:HTTP_PROXY='http://127.0.0.1:7897'
 $env:HTTPS_PROXY='http://127.0.0.1:7897'
 $env:NODE_USE_ENV_PROXY='1'
-dsh plugin --profile web add "<Release URL>"
+dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
 ```
+
+> 方式二（本地 tarball）**不需要联网，也不受代理影响**——网络受限时优先用它。
 
 **这一条要写进用户须知**——否则用户会以为插件坏了。README 里已有相关说明。
 

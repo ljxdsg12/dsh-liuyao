@@ -51,8 +51,18 @@ const entry = JSON.parse(read('catalog-entry.json'))
 for (const k of ['name', 'owner', 'url', 'description', 'category', 'install']) ok(Boolean(entry[k]), `字段 ${k}`)
 ok(entry.description.en && entry.description.zh, '中英双语描述')
 ok(Array.isArray(entry.capabilities) && entry.capabilities.length === 0, 'capabilities 为空（无红线）')
-ok(entry.install.includes('releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz'), 'install 指向已发布的 Release 附件')
+ok(entry.install.includes('github:ljxdsg12/dsh-liuyao#v0.1.0'), 'install 使用已验证的 git 规格', entry.install)
+ok(!entry.install.includes('releases/download'), 'install 不使用失效的 tarball 直链')
 ok(entry.screenshots.length === 4, 'screenshots 4 张', String(entry.screenshots.length))
+ok(entry.screenshots.every(u => u.includes('/v0.1.0/assets/')), 'screenshots 指向标签快照（跟随标签前移）')
+
+console.log('— 面向用户的安装命令不得使用失效直链 —')
+for (const file of ['README.md', 'README.en.md', 'RELEASE-NOTES-v0.1.0.md', 'NEXT-STEPS.md']) {
+  const text = read(file)
+  const usesBroken = /dsh plugin[^\n]*add "https:\/\/github\.com\/ljxdsg12\/dsh-liuyao\/releases\/download/.test(text)
+  ok(!usesBroken, `${file} 未把失效直链写成安装命令`)
+}
+// 说明性文档里可以出现该 URL（用于解释问题），故不检查 KNOWN-ISSUE / PUBLISHING
 
 console.log(bad === 0 ? '\n全部通过' : `\n失败 ${bad} 项`)
 process.exit(bad === 0 ? 0 : 1)

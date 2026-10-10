@@ -5,10 +5,20 @@ DeepSeek Harness 的六爻算卦插件：**先天八卦图为盘，火珠林纳�
 ## 安装
 
 ```bash
-dsh plugin --profile web add "https://github.com/ljxdsg12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
+dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
+```
+
+或从本页下载 `dsh-liuyao-0.1.0.tgz` 后本地安装：
+
+```bash
+dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz
 ```
 
 装完**重启 DSH**，再刷新界面，会出现「六爻」主面板与侧栏图标。
+
+> ⚠️ 请勿用本页附件的直链安装：DSH 安装器目前对远程 tarball 写出的 lockfile 条目缺 `integrity`
+> 字段，pnpm 会以 `ERR_PNPM_MISSING_TARBALL_INTEGRITY` 拒绝。这是安装器 / pnpm 的问题，
+> 不是包本身的问题——同一个文件走本地路径即可安装。
 
 ## 这一版有什么
 
