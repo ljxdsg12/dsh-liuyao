@@ -885,6 +885,7 @@ window.__ModuleLoader__.load({
 			aiText: "",
 			aiError: "",
 			aiNotice: "",
+			aiTiming: "",
 		};
 
 		function Board(props) {
@@ -924,6 +925,7 @@ window.__ModuleLoader__.load({
 			var [aiStreaming, setAiStreaming] = React.useState(false);
 			var [aiError, setAiError] = React.useState(boardCache.aiError);
 			var [aiNotice, setAiNotice] = React.useState(boardCache.aiNotice);
+			var [aiTiming, setAiTiming] = React.useState(boardCache.aiTiming);
 
 			React.useEffect(function () {
 				var alive = true;
@@ -1005,7 +1007,8 @@ window.__ModuleLoader__.load({
 				boardCache.aiText = "";
 				boardCache.aiError = "";
 				boardCache.aiNotice = "";
-				if (mounted.current) { setAiText(""); setAiStreaming(false); setAiError(""); setAiNotice("") }
+				boardCache.aiTiming = "";
+				if (mounted.current) { setAiText(""); setAiStreaming(false); setAiError(""); setAiNotice(""); setAiTiming("") }
 			}
 
 			function runAiAnalysis(body) {
@@ -1014,7 +1017,8 @@ window.__ModuleLoader__.load({
 				boardCache.aiText = "";
 				boardCache.aiError = "";
 				boardCache.aiNotice = "";
-				if (mounted.current) { setAiText(""); setAiError(""); setAiNotice(""); setAiStreaming(true) }
+				boardCache.aiTiming = "";
+				if (mounted.current) { setAiText(""); setAiError(""); setAiNotice(""); setAiTiming(""); setAiStreaming(true) }
 				api.analyzeAi(body, function (ev) {
 					if (ev.type === "delta") {
 						boardCache.aiText += ev.text;
@@ -1025,6 +1029,14 @@ window.__ModuleLoader__.load({
 					} else if (ev.type === "error") {
 						boardCache.aiError = ev.text || "AI 断卦失败";
 						if (mounted.current) setAiError(boardCache.aiError);
+					} else if (ev.type === "done" && ev.timing) {
+						// 耗时展示：首字延迟反映「思考」开销，总时长反映输出长度
+						var t = ev.timing;
+						var secs = function (ms) { return ms === null || ms === undefined ? "—" : (ms / 1000).toFixed(1) + "s" };
+						boardCache.aiTiming = "首字 " + secs(t.firstTokenMs) + "　共 " + secs(t.totalMs)
+							+ "　输出 " + t.outputChars + " 字　详细度 " + (t.depth === "brief" ? "精简" : "完整")
+							+ "　思考 " + (t.reasoning === "default" ? "跟随默认" : t.reasoning);
+						if (mounted.current) setAiTiming(boardCache.aiTiming);
 					}
 				}, controller ? controller.signal : undefined)
 					.then(function () { if (mounted.current) setAiStreaming(false) })
@@ -1238,6 +1250,8 @@ window.__ModuleLoader__.load({
 											h("div", { className: "ly-src" }, "可切换到「规则断卦」查看内置规则引擎的结果。"))
 										: h(AiAnalysisView, { text: aiText, streaming: aiStreaming }),
 									aiNotice ? h("div", { className: "ly-src" }, aiNotice) : null,
+									// 耗时：首字延迟反映思考开销，总时长反映输出长度 —— 便于判断该调哪个旋钮
+									aiTiming ? h("div", { className: "ly-src", style: { marginTop: 6 } }, aiTiming) : null,
 								)
 								: h(AnalysisView, { analysis: result.analysis }),
 							// 一卦一断：解读之后的追问对话框
