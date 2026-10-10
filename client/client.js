@@ -692,7 +692,7 @@ window.__ModuleLoader__.load({
 						return h("div", { className: "ly-ask-turn " + t.role, key: "t" + i },
 							h("div", { className: "ly-ask-who" }, t.role === "user" ? "你问" : "答（依本卦）"),
 							h("div", { className: "ly-ask-text" + (t.refused ? " refused" : t.failed ? " failed" : "") },
-								t.text === "" && t.pending ? "推演中…" : t.text),
+								t.text === "" && t.pending ? "推演中…" : stripMd(t.text)),
 						);
 					})),
 				notice ? h("div", { className: "ly-ask-notice" }, notice) : null,
@@ -840,7 +840,7 @@ window.__ModuleLoader__.load({
 						s.title ? h("h4", null, s.title) : null,
 						s.paras.map(function (p, j) {
 							return h("div", { key: "aip" + j, style: { marginBottom: 6 } },
-								h("div", null, p.text),
+								h("div", null, stripMd(p.text)),
 								p.source ? h("div", { className: "ly-src" }, "〔" + p.source + "〕") : null,
 							);
 						}),
@@ -848,13 +848,31 @@ window.__ModuleLoader__.load({
 							var cls = it.level === "凶" ? "ly-key" : it.level === "吉" ? "ly-good" : "ly-mark";
 							return h("div", { key: "aii" + j, style: { marginBottom: 3 } },
 								h("span", { className: cls }, "[" + it.level + "] "),
-								it.text,
+								stripMd(it.text),
 								it.source ? h("span", { className: "ly-src" }, " 〔" + it.source + "〕") : null,
 							);
 						}),
 					);
 				}),
 			);
+		}
+
+		// 显示层兜底：去掉模型偶发输出的 Markdown 标记。
+		// 提示词里已要求不用 Markdown，但模型仍可能在追问环节自行加 **加粗** 之类；
+		// 这里统一清掉，避免界面上出现裸露的星号。
+		var MD_RULES = [
+			[/\*\*\*(.+?)\*\*\*/g, '$1'],   // ***粗斜体***
+			[/\*\*(.+?)\*\*/g, '$1'],       // **加粗**
+			[/__(.+?)__/g, '$1'],           // __加粗__
+			[/\*(.+?)\*/g, '$1'],           // *斜体*
+			[/`{1,3}([^`]+)`{1,3}/g, '$1'], // `代码`
+			[/~~(.+?)~~/g, '$1'],           // ~~删除线~~
+			[/^#{1,6}\s+/gm, ''],           // 行首的 # 号
+		];
+		function stripMd(text) {
+			var s = String(text === null || text === undefined ? "" : text);
+			for (var i = 0; i < MD_RULES.length; i += 1) s = s.replace(MD_RULES[i][0], MD_RULES[i][1]);
+			return s;
 		}
 
 		function nowString() {
