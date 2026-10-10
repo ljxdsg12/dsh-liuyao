@@ -1,0 +1,22 @@
+{
+  "name": "dsh-liuyao",
+  "owner": "LJXDSG12",
+  "url": "https://github.com/LJXDSG12/dsh-liuyao",
+  "description": {
+    "en": "Six-yao (I Ching) divination for DeepSeek Harness: xiantian bagua backdrop, Zhouyi opening verse, manual entry with three-coin hints or simulated coin toss, najia charting (six relatives, six gods, void branches, hidden spirits, nayin, seasonal strength, advancing/retreating transformations), interpretation whose every statement cites its classical source, a plain-language recap, and a one-hexagram-one-question follow-up dialog. Zero npm dependencies, no network access.",
+    "zh": "DeepSeek Harness 的六爻算卦插件：先天八卦盘背景、周易开场辞、带三枚铜钱提示的手工输入或电脑摇卦、六亲/六神/旬空/伏神/纳音/旺衰/进退的纳甲排盘、逐条注明典籍出处的解读、通俗总结，以及「一卦一断」追问对话框。零 npm 依赖、无网络访问。"
+  },
+  "category": "fun",
+  "npm": null,
+  "tarball": "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz",
+  "version": "0.1.0",
+  "capabilities": [],
+  "capabilityRedLines": [],
+  "install": "dsh plugin --profile web add \"https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz\"",
+  "screenshots": [
+    "https://raw.githubusercontent.com/LJXDSG12/dsh-liuyao/HEAD/assets/screenshot-1.png",
+    "https://raw.githubusercontent.com/LJXDSG12/dsh-liuyao/HEAD/assets/screenshot-2.png",
+    "https://raw.githubusercontent.com/LJXDSG12/dsh-liuyao/HEAD/assets/screenshot-3.png",
+    "https://raw.githubusercontent.com/LJXDSG12/dsh-liuyao/HEAD/assets/screenshot-4.png"
+  ]
+}

@@ -23,16 +23,24 @@ strictly sourced interpretation · one-hexagram-one-question follow-up dialog.
 
 ## Install
 
+Download the release tarball and install it:
+
 ```bash
-dsh plugin --profile web add dsh-liuyao          # from npm, once published
-# or from a GitHub release tarball:
-dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
-# or from a downloaded tarball:
 dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz
 ```
 
-The installer registers the bundle in your profile automatically. Restart DSH, then refresh the GUI.
+Or install straight from the GitHub release URL:
+
+```bash
+dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz"
+```
+
+The installer registers the bundle in your profile automatically. **Restart DSH**, then refresh the GUI.
 A **六爻** panel and sidebar icon appear.
+
+> Prefer the tarball over `add github:LJXDSG12/dsh-liuyao`. Installing from a git source makes pnpm
+> resolve the whole lockfile against the npm registry, which fails behind TLS-intercepting proxies
+> (`DEPTH_ZERO_SELF_SIGNED_CERT`). The tarball path installs in about two seconds and touches no registry.
 
 ## Configuration
 
