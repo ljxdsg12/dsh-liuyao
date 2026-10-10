@@ -1,0 +1,58 @@
+// 发布前一致性检查：截图引用、包内容、仓库地址
+import { existsSync, readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+const read = (p) => readFileSync(join(root, p), 'utf8')
+let bad = 0
+const ok = (cond, label, extra = '') => {
+  if (cond) console.log(`  ✓ ${label}`)
+  else { bad += 1; console.log(`  ✗ ${label}${extra ? ' :: ' + extra : ''}`) }
+}
+
+console.log('— README / 目录条目引用的截图 —')
+for (const file of ['README.md', 'README.en.md', 'catalog-entry.json']) {
+  const text = read(file)
+  const refs = [...text.matchAll(/assets\/screenshot-\d+\.png/g)].map(m => m[0])
+  for (const ref of new Set(refs)) ok(existsSync(join(root, ref)), `${file} → ${ref}`)
+}
+
+console.log('— assets 目录 —')
+for (const n of [1, 2, 3, 4]) {
+  const p = `assets/screenshot-${n}.png`
+  const exists = existsSync(join(root, p))
+  ok(exists, p)
+  if (exists) {
+    const b = readFileSync(join(root, p))
+    const isPng = b.slice(0, 8).toString('hex') === '89504e470d0a1a0a'
+    const isJpeg = b[0] === 0xff && b[1] === 0xd8
+    const w = isPng ? b.readUInt32BE(16) : null
+    const h = isPng ? b.readUInt32BE(20) : null
+    console.log(`      实际编码: ${isPng ? `PNG ${w}x${h}` : isJpeg ? 'JPEG（扩展名为 .png，浏览器与 GitHub 均按内容识别，可正常显示）' : '未知'}`)
+  }
+}
+
+console.log('— 包元数据 —')
+const pkg = JSON.parse(read('package.json'))
+ok(pkg.name === 'dsh-liuyao', 'name')
+ok(pkg.version === '0.1.0', 'version', pkg.version)
+ok(pkg.private === undefined, '未声明 private（可发布）')
+ok(pkg.files.includes('assets'), 'files 白名单含 assets')
+ok(pkg.homepage.includes('ljxdsg12/dsh-liuyao'), 'homepage 指向规范小写地址', pkg.homepage)
+ok(pkg.repository.url.includes('ljxdsg12/dsh-liuyao'), 'repository 一致')
+ok(pkg.bugs.url.includes('ljxdsg12/dsh-liuyao'), 'bugs 一致')
+ok(pkg.dsh?.bundle?.patch === './cordis.patch.yml', 'dsh.bundle 已声明（收录 gate 门槛之一）')
+ok(pkg.dsh?.client?.platform === 'web', 'dsh.client.platform = web')
+
+console.log('— 目录条目 —')
+const entry = JSON.parse(read('catalog-entry.json'))
+for (const k of ['name', 'owner', 'url', 'description', 'category', 'install']) ok(Boolean(entry[k]), `字段 ${k}`)
+ok(entry.description.en && entry.description.zh, '中英双语描述')
+ok(Array.isArray(entry.capabilities) && entry.capabilities.length === 0, 'capabilities 为空（无红线）')
+ok(entry.install.includes('releases/download/v0.1.0/dsh-liuyao-0.1.0.tgz'), 'install 指向已发布的 Release 附件')
+ok(entry.screenshots.length === 4, 'screenshots 4 张', String(entry.screenshots.length))
+
+console.log(bad === 0 ? '\n全部通过' : `\n失败 ${bad} 项`)
+process.exit(bad === 0 ? 0 : 1)
