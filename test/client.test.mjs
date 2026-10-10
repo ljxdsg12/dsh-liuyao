@@ -368,6 +368,8 @@ check(/followUpProvider/.test(hostSrc) && /followUpModel/.test(hostSrc), '支持
 const hostSource = readFileSync(join(root, 'lib', 'index.js'), 'utf8')
 const clientEndpoints = [...source.matchAll(/post\("([a-z]+)"/g)].map(m => m[1])
 const hostEndpoints = [...hostSource.matchAll(/^\s{6}([a-z]+): \(/gm)].map(m => m[1])
+  // 单独注册、不走 endpoints 表的端点（流式追问 ask、关于 about）
+  .concat([...hostSource.matchAll(/path: `\$\{API_PREFIX\}([a-z]+)`/g)].map(m => m[1]))
 const uniqueClient = [...new Set(clientEndpoints)].sort()
 const uniqueHost = [...new Set(hostEndpoints)].sort()
 check(uniqueClient.length >= 5, '客户端调用了 Host 端点', uniqueClient.join(','))

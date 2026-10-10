@@ -142,7 +142,7 @@ try { await tools.get('liuyao_cast').execute({ time: '2026-10-10 12:00', yao: [1
 check(yaoRejected, '爻数不足被拒')
 
 console.log('--- HTTP 端点 ---')
-const expectedPaths = ['/dsh-liuyao/config', '/dsh-liuyao/opening', '/dsh-liuyao/selftest', '/dsh-liuyao/toss', '/dsh-liuyao/cast', '/dsh-liuyao/analyze', '/dsh-liuyao/ask']
+const expectedPaths = ['/dsh-liuyao/config', '/dsh-liuyao/opening', '/dsh-liuyao/selftest', '/dsh-liuyao/toss', '/dsh-liuyao/cast', '/dsh-liuyao/analyze', '/dsh-liuyao/about', '/dsh-liuyao/ask']
 check(routes.length === expectedPaths.length, `注册 ${expectedPaths.length} 个 exact 路由`, routes.map(r => r.path).join(','))
 check(routes.every(r => r.kind === 'exact'), '全部为 exact 路由（优先于静态兜底，不再返回 405）')
 check(expectedPaths.every(p => routes.some(r => r.path === p)), '端点路径齐备', routes.map(r => r.path).join(','))
@@ -185,6 +185,20 @@ check(c1.analysis.sections.length >= 6, 'endpoint cast 返回断卦依据')
 const a1 = (await callRoute('/dsh-liuyao/analyze', { body: JSON.stringify({ time: '2026-10-10 12:08', yao: [7, 7, 7, 7, 7, 7], topic: '问财' }) })).json.value
 check(a1.analysis.yongshen.use === '妻财', 'endpoint analyze 取用神')
 check(Array.isArray((await callRoute('/dsh-liuyao/selftest')).json.value.anchor), 'endpoint selftest')
+
+console.log('--- 关于（咨询与赞助）端点 ---')
+const about = (await callRoute('/dsh-liuyao/about')).json.value
+check(about.name === 'dsh-liuyao' && about.version === mod.VERSION, 'endpoint about 名称与版本', `${about.name} ${about.version}`)
+check(about.license === 'MIT', 'endpoint about 许可')
+check(about.consultWechat === 'Ljx_0609300', 'endpoint about 微信号', String(about.consultWechat))
+check(typeof about.sponsorNote === 'string' && about.sponsorNote.length > 0, 'endpoint about 赞助说明非空')
+check(Array.isArray(about.privacy) && about.privacy.length >= 3, 'endpoint about 数据透明条目', String((about.privacy || []).length))
+check(Array.isArray(about.disclaimer) && about.disclaimer.length >= 3, 'endpoint about 免责条目', String((about.disclaimer || []).length))
+check(Array.isArray(about.anchors) && about.anchors.length >= 3, 'endpoint about 历法锚点', String((about.anchors || []).length))
+check(about.feedbackUrl.includes('github.com/ljxdsg12/dsh-liuyao'), 'endpoint about 反馈地址')
+// 微信号可通过配置清空隐藏
+const hiddenCfg = mod.Config['~standard'].validate({ enabled: true, consultWechat: '' })
+check(hiddenCfg.value.consultWechat === '', '可将 consultWechat 置空以隐藏该栏')
 
 console.log('--- 端点安全与错误处理 ---')
 const getRes = await callRoute('/dsh-liuyao/cast', { method: 'GET' })

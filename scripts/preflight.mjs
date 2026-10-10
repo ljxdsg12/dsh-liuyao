@@ -46,6 +46,15 @@ ok(pkg.bugs.url.includes('ljxdsg12/dsh-liuyao'), 'bugs 一致')
 ok(pkg.dsh?.bundle?.patch === './cordis.patch.yml', 'dsh.bundle 已声明（收录 gate 门槛之一）')
 ok(pkg.dsh?.client?.platform === 'web', 'dsh.client.platform = web')
 
+console.log('— 版本号一致性 —')
+const hostSource = read('lib/index.js')
+const versionInHost = /export const VERSION = '([^']+)'/.exec(hostSource)?.[1]
+ok(versionInHost === pkg.version, 'lib/index.js 的 VERSION 与 package.json 一致', `${versionInHost} vs ${pkg.version}`)
+
+console.log('— 联系与赞助信息 —')
+const wechat = /\[?'consultWechat', 'string', '([^']*)'/.exec(hostSource)?.[1]
+ok(typeof wechat === 'string' && wechat.length > 0, '默认咨询微信号已配置', String(wechat))
+
 console.log('— 目录条目 —')
 const entry = JSON.parse(read('catalog-entry.json'))
 for (const k of ['name', 'owner', 'url', 'description', 'category', 'install']) ok(Boolean(entry[k]), `字段 ${k}`)

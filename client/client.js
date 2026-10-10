@@ -235,6 +235,25 @@ window.__ModuleLoader__.load({
 			".ly-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}",
 			".ly-title{font-size:20px;font-weight:600;letter-spacing:.12em}",
 			".ly-sub{color:var(--dsw-alias-label-secondary);font-size:12px}",
+			// —— 关于面板 ——
+			".ly-about{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-lg,12px);padding:14px 16px;margin-top:12px;",
+			"background:var(--dsw-alias-bg-layer-2);box-shadow:var(--dsw-shadow-lv1,0 1px 2px rgba(0,0,0,.05))}",
+			".ly-about-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l1)}",
+			".ly-about-name{font-size:16px;font-weight:600;letter-spacing:.04em}",
+			".ly-about-ver{font-size:12px;color:var(--dsw-alias-brand-primary);border:1px solid var(--dsw-alias-border-l2);border-radius:999px;padding:1px 8px}",
+			".ly-about-lic{font-size:12px;color:var(--dsw-alias-label-secondary)}",
+			".ly-about-sec{margin-top:14px;min-width:0}",
+			".ly-about-sec h4{margin:0 0 6px;font-size:13px;font-weight:600;letter-spacing:.04em}",
+			".ly-about-ul{margin:0;padding-left:18px;color:var(--dsw-alias-label-secondary)}",
+			".ly-about-ul li{margin:3px 0;overflow-wrap:anywhere}",
+			".ly-about-row{display:flex;gap:10px;align-items:baseline;margin-top:4px;min-width:0;flex-wrap:wrap}",
+			".ly-about-k{color:var(--dsw-alias-label-secondary);font-size:12px;flex:0 0 auto}",
+			".ly-about-v{min-width:0;overflow-wrap:anywhere}",
+			".ly-about-a{color:var(--dsw-alias-brand-primary);text-decoration:none;overflow-wrap:anywhere}",
+			".ly-about-a:hover{text-decoration:underline}",
+			".ly-about-wechat{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 4px}",
+			".ly-about-code{font-family:var(--dsw-font-mono,ui-monospace,SFMono-Regular,Menlo,monospace);font-size:12px;",
+			"background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l2);border-radius:6px;padding:2px 7px;overflow-wrap:anywhere}",
 			".ly-card{border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-lg,12px);padding:14px 16px;margin-top:14px;",
 			"background:var(--dsw-alias-bg-layer-2);box-shadow:var(--dsw-shadow-lv1,0 1px 2px rgba(0,0,0,.05))}",
 			".ly-opening{font-size:14px;line-height:2;color:var(--dsw-alias-label-primary);letter-spacing:.02em;",
@@ -485,6 +504,7 @@ window.__ModuleLoader__.load({
 				cast: function (body) { return post("cast", body) },
 				analyze: function (body) { return post("analyze", body) },
 				selftest: function () { return post("selftest", {}) },
+				about: function () { return post("about", {}) },
 			};
 		}
 
@@ -690,6 +710,73 @@ window.__ModuleLoader__.load({
 			);
 		}
 
+		// 关于：版本、数据透明、咨询与赞助（纯静态展示；外链由浏览器打开，插件本身不发请求）
+		function AboutRow(props) {
+			return h("div", { className: "ly-about-row" },
+				h("span", { className: "ly-about-k" }, props.k),
+				h("span", { className: "ly-about-v" }, props.children),
+			);
+		}
+
+		function AboutDialog(props) {
+			var info = props.info;
+			return h("div", { className: "ly-about" },
+				h("div", { className: "ly-about-head" },
+					h("span", { className: "ly-about-name" }, info.name),
+					h("span", { className: "ly-about-ver" }, "v" + info.version),
+					h("span", { className: "ly-about-lic" }, info.license),
+					h("button", { className: "ly-btn ghost", style: { marginLeft: "auto" }, onClick: props.onClose }, "收起"),
+				),
+				h("div", { className: "ly-about-sec" },
+					h("h4", null, "这是什么"),
+					h("p", { className: "ly-summary-p" },
+						"六爻纳甲排盘与断卦工具：先天八卦为盘、火珠林纳甲为法、增删卜易为断。排盘与断语逐条注明典籍出处，典籍无明文者不作推断。"),
+					h(AboutRow, { k: "已验证环境" }, info.verifiedOn),
+					h(AboutRow, { k: "项目地址" }, h("a", { className: "ly-about-a", href: info.repository, target: "_blank", rel: "noreferrer" }, info.repository)),
+					info.feedbackUrl
+						? h(AboutRow, { k: "问题反馈" }, h("a", { className: "ly-about-a", href: info.feedbackUrl, target: "_blank", rel: "noreferrer" }, info.feedbackUrl))
+						: null,
+				),
+				h("div", { className: "ly-about-sec" },
+					h("h4", null, "数据透明"),
+					h("ul", { className: "ly-about-ul" }, (info.privacy || []).map(function (t, i) { return h("li", { key: "pv" + i }, t) })),
+				),
+				info.consultWechat
+					? h("div", { className: "ly-about-sec" },
+						h("h4", null, "咨询与赞助"),
+						h("p", { className: "ly-summary-p" }, info.sponsorNote),
+						h("div", { className: "ly-about-wechat" },
+							h("span", { className: "ly-about-k" }, "微信号"),
+							h("code", { className: "ly-about-code" }, info.consultWechat),
+							h("button", {
+								className: "ly-btn ghost",
+								onClick: function () {
+									try {
+										if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+											navigator.clipboard.writeText(info.consultWechat);
+										}
+									} catch (error) { /* 复制失败不影响展示 */ }
+								},
+							}, "复制"),
+						),
+						h("div", { className: "ly-src" }, "加微信请注明来意（咨询／定制／赞助）。插件本身免费开源，赞助与咨询都自愿。"),
+					)
+					: null,
+				h("div", { className: "ly-about-sec" },
+					h("h4", null, "免责与边界"),
+					h("ul", { className: "ly-about-ul" }, (info.disclaimer || []).map(function (t, i) { return h("li", { key: "dc" + i }, t) })),
+				),
+				h("div", { className: "ly-about-sec" },
+					h("h4", null, "历法自检锚点"),
+					h("div", { className: "ly-src" }, "干支历以天文算法推算（定气定朔），下列结果与通胜万年历逐字核对："),
+					h("ul", { className: "ly-about-ul" }, (info.anchors || []).map(function (a, i) {
+						return h("li", { key: "an" + i }, h("code", { className: "ly-about-code" }, a.date), " → " + a.expected);
+					})),
+					info.note ? h("div", { className: "ly-src" }, info.note) : null,
+				),
+			);
+		}
+
 		function nowString() {
 			var d = new Date();
 			var p2 = function (n) { return String(n).padStart(2, "0"); };
@@ -711,13 +798,20 @@ window.__ModuleLoader__.load({
 			var [error, setError] = React.useState("");
 			var [busy, setBusy] = React.useState(false);
 			var [showRaw, setShowRaw] = React.useState(false);
+			var [about, setAbout] = React.useState(null);
+			var [aboutOpen, setAboutOpen] = React.useState(false);
 
 			React.useEffect(function () {
 				var alive = true;
 				if (!api) { setError("与 Host 的连接不可用"); return undefined; }
 				api.opening().then(function (v) { if (alive) setOpening(v.opening); }).catch(function () {});
 				api.config().then(function (v) {
-					if (alive && v && v.config) setConfirmEach(v.config.requireConfirmEach !== false);
+					if (alive && v && v.config) {
+						setConfirmEach(v.config.requireConfirmEach !== false);
+						if (v.config.aboutEnabled !== false && typeof api.about === "function") {
+							api.about().then(function (a) { if (alive && a && a.value) setAbout(a.value); }).catch(function () {});
+						}
+					}
 				}).catch(function () {});
 				return function () { alive = false; };
 			}, [api]);
@@ -891,7 +985,15 @@ window.__ModuleLoader__.load({
 					h("div", { className: "ly-head" },
 						h("div", { className: "ly-title" }, "六爻·纳甲"),
 						h("div", { className: "ly-sub" }, "先天八卦为盘　火珠林纳甲为法　增删卜易为断"),
+						about
+							? h("button", {
+								className: "ly-btn ghost",
+								style: { marginLeft: "auto", alignSelf: "center" },
+								onClick: function () { setAboutOpen(function (v) { return !v }) },
+							}, aboutOpen ? "收起关于" : "关于")
+							: null,
 					),
+					aboutOpen && about ? h(AboutDialog, { info: about, onClose: function () { setAboutOpen(false) } }) : null,
 					opening ? h("div", { className: "ly-card" }, h("div", { className: "ly-opening" }, opening)) : null,
 					tossCard,
 					result
