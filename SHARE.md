@@ -8,13 +8,24 @@
 
 ## 一、安装（一条命令）
 
+### 第 0 步：先确认 `dsh` 命令能用
+
 在 PowerShell 里执行：
 
 ```powershell
-dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
+dsh --version
 ```
 
-看到 `Done in …s` 就成功了。然后：
+- 能打印版本号（如 `0.2.0-rc.2`）→ 进入第 1 步
+- 提示 **`dsh 不是内部或外部命令`** → 见下方「情况 0」
+
+### 第 1 步：安装
+
+```powershell
+dsh plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.1.0.tar.gz"
+```
+
+把路径换成文件实际存放的位置。看到 `Done in …s` 就成功了。然后：
 
 1. **完全退出 DeepSeek Harness 再重新打开**（Host 半只在启动时加载，必须重启才生效）
 2. 刷新界面（`Ctrl+R`）
@@ -25,34 +36,57 @@ dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
 
 ## 二、装不上怎么办
 
+### 情况 0：`dsh 不是内部或外部命令`
+
+DSH 桌面版**默认不把 `dsh` 加进 PATH**（很常见，不是你装错了）。两个办法：
+
+**办法一：用完整路径**（把安装目录换成你自己的）
+
+```powershell
+& "C:\你的安装目录\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.1.0.tar.gz"
+```
+
+安装目录就是 `DeepSeek Harness.exe` 所在的那个文件夹。不确定位置：
+右键桌面或开始菜单里的 DSH 快捷方式 →「打开文件所在的位置」。
+
+**办法二：永久加进 PATH**（一次搞定，以后 `dsh` 直接可用）
+
+```powershell
+$cli = "C:\你的安装目录\resources\runtime\cli\bin"
+[Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path','User') + ';' + $cli, 'User')
+```
+
+然后**关掉 PowerShell 重开**（PATH 只在启动时读取），再验证 `dsh --version`。
+
 ### 情况 1：提示 `'git' 不是内部或外部命令`
 
-这个安装方式需要机器上有 **git**。装一个即可：<https://git-scm.com/download/win>（一路默认下一步）。
+说明用的是 `github:...` 那种联网安装方式。**本地 tarball 方式不需要 git**，见第 1 步。
 
 ### 情况 2：连不上 GitHub / 超时 / 证书错误
 
-国内网络访问 GitHub 通常需要代理。如果报 `fetch failed`、`ETIMEDOUT`、`DEPTH_ZERO_SELF_SIGNED_CERT`，
-**先开代理**，并给命令行显式指定（Node 不会自动读系统代理）：
+本地 tarball 方式**不需要联网**，一般遇不到。若确实要用联网方式而报
+`fetch failed`、`ETIMEDOUT`、`DEPTH_ZERO_SELF_SIGNED_CERT`，是走了代理但 Node 没读到——
+Node 不会自动使用系统代理，需显式指定（端口换成你自己代理的）：
 
 ```powershell
-$env:HTTP_PROXY='http://127.0.0.1:7897'    # 端口换成你自己代理的端口
+$env:HTTP_PROXY='http://127.0.0.1:7897'
 $env:HTTPS_PROXY='http://127.0.0.1:7897'
 $env:NODE_USE_ENV_PROXY='1'
-dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
 ```
 
-### 情况 3：实在不行，用离线包
+### 情况 3：文件在资源管理器里"看不见"
 
-从 <https://github.com/ljxdsg12/dsh-liuyao/releases/tag/v0.1.0> 下载 `dsh-liuyao-0.1.0.tgz`，
-然后本地安装（**不需要联网，也不受代理影响**）：
+`.tgz` 扩展名常被 Windows 当成未知类型而隐藏。两个办法：
 
-```powershell
-dsh plugin --profile web add .\dsh-liuyao-0.1.0.tgz
-```
+- 收到的是 `.tar.gz`（推荐）：Windows 正常显示，不会遇到这个问题
+- 若只有 `.tgz`：资源管理器 →「查看」→ 勾上「**文件扩展名**」，或在命令里写全名
 
-> ⚠️ 不要用那个附件的**直链**安装（`add "https://github.com/…tgz"`）。DSH 安装器目前对远程 tarball
-> 写出的 lockfile 条目缺 `integrity` 字段，pnpm 会报 `ERR_PNPM_MISSING_TARBALL_INTEGRITY`。
-> 这是安装器与 pnpm 的问题，不是包的问题——**下载到本地再装就没问题**。
+> ⚠️ **不要改扩展名**。改成 `.zip` 会失败（pnpm 按扩展名判断，报
+> `ERR_PNPM_NOT_PACKAGE_DIRECTORY`）；`.tgz` 与 `.tar.gz` 都能用。
+>
+> ⚠️ 也**不要**用 Release 附件的**直链**安装（`add "https://github.com/…tgz"`）：
+> DSH 安装器目前对远程 tarball 写出的 lockfile 条目缺 `integrity` 字段，pnpm 会报
+> `ERR_PNPM_MISSING_TARBALL_INTEGRITY`。**下载到本地再装就没问题。**
 
 ## 三、怎么用
 
