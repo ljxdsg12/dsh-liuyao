@@ -1,0 +1,5 @@
+# dsh-liuyao bundle patch：把六爻插件作为一层插入 profile 组合。
+# 关闭插件：在 profile 的 cordis.patch.yml 里为同一 id 加 `disabled: true`。
+- insert:
+    - id: liuyao
+      name: dsh-liuyao

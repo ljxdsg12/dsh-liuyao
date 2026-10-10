@@ -1,0 +1,73 @@
+{
+  "name": "dsh-liuyao",
+  "version": "0.1.0",
+  "description": "六爻算卦插件（DeepSeek Harness）：先天八卦盘背景、周易开场辞、手工/电脑摇卦、纳甲排盘、典籍严格断卦，以及「一卦一断」追问对话框。纳甲依《火珠林》，八宫世应依《卜筮正宗》，断卦依《增删卜易》《黄金策》《易冒》《易隐》《周易应用经验学》。 / Six-yao (I Ching) divination plugin for DeepSeek Harness: xiantian bagua backdrop, Zhouyi opening verse, manual or simulated coin toss, najia charting, strictly sourced interpretation, and a one-hexagram-one-question follow-up dialog.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    },
+    "compatibility": {
+      "dsh": ">=0.2.0-rc.1"
+    }
+  },
+  "files": [
+    "lib",
+    "client",
+    "src",
+    "skills",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
+    "LICENSE",
+    "PUBLISHING.md"
+  ],
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "client-plugin",
+    "liuyao",
+    "六爻",
+    "周易",
+    "易经",
+    "占卜",
+    "纳甲",
+    "增删卜易",
+    "bagua",
+    "iching",
+    "divination"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "license": "MIT",
+  "author": "dsh-liuyao contributors",
+  "homepage": "https://github.com/LJXDSG12/dsh-liuyao#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LJXDSG12/dsh-liuyao.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LJXDSG12/dsh-liuyao/issues"
+  },
+  "scripts": {
+    "test": "node test/run-all.mjs"
+  }
+}
