@@ -1,129 +1,113 @@
 # 上架进度与剩余事项
 
-**状态：插件已正式发布，安装链路已端到端验证。** 只剩「截图 + 提收录 PR」两件事需要你做。
+**状态：插件已发布并端到端验证，安装问题已定位并给出可用替代方案。**
+只剩「看界面 + 提收录 PR」两件事需要你做。
 
 ---
 
-## 一、已完成并验证（截至 2026-10-10 15:12）
+## 一、已完成并验证（截至 2026-10-10 19:50）
 
 | 项目 | 证据 |
 |---|---|
 | 公开仓库 | <https://github.com/ljxdsg12/dsh-liuyao>（公开、默认分支 main） |
-| 代码已推送 | `main` = `ba1b9c0`，**20 个提交**，标签 `v0.1.0` 已推送，工作区干净 |
-| Release 已发布 | <https://github.com/ljxdsg12/dsh-liuyao/releases/tag/v0.1.0>，`prerelease: false`（Latest） |
-| Release 附件 | `dsh-liuyao-0.1.0.tgz`，81,884 字节，`state: uploaded` |
-| 产物完整性 | **三方 SHA256 一致**：本地 = 公网下载 = GitHub API 报告 `311f9904…5161` |
-| 公网安装实测 | `dsh plugin --profile verifyinstall add "<Release URL>"` → **exit 0，2.5 秒** |
-| 装后可用性 | 从安装目录加载：工具 3 个、端点 7 条；`山火贲 → 地雷复` 排盘、8 个分析章节、含通俗总结与断卦依据 |
-| 自检 | `npm test` → **8/8 套件通过** |
+| 代码 | `main`，**29 个提交**，标签 `v0.1.0`，工作区干净 |
+| Release | <https://github.com/ljxdsg12/dsh-liuyao/releases/tag/v0.1.0>，`prerelease: false`（Latest） |
+| Release 附件 | `dsh-liuyao-0.1.0.tgz`，393,640 字节，SHA256 `1a465595…d6ffc5` |
+| 发布包（最新） | `dsh-liuyao-0.1.0.tgz` / `.tar.gz`，387.3 KB，SHA256 `0df1fe2e…96c0e7`（含「关于」功能） |
+| 本地安装实测 | `dsh plugin add <tarball>` → **323ms**，免 git、免联网、免代理 |
+| 联网安装实测 | `dsh plugin add "github:ljxdsg12/dsh-liuyao#v0.1.0"` → **4s**（需 git + 代理） |
+| 装后可用性 | 工具 3 个、端点 **8** 条；`山火贲 → 地雷复`、8 个分析章节、含通俗总结与断卦依据 |
+| 功能 | 起卦（手工／电脑摇卦）、排盘、断卦（逐条注明出处）、通俗总结、一卦一断、**关于（含咨询微信号）** |
+| 自检 | `npm test` → **8/8 套件通过**；`scripts/preflight.mjs` → 全部通过 |
 | 许可 | `LICENSE`（MIT + 四条免责附加说明），GitHub 识别为 `Other`（自定义许可） |
+| 截图 | `assets/screenshot-1..4.png`，已进 README 与目录条目 |
 
-用户的安装命令（**两种都已实测可用**）：
+### 可用的安装方式（实测结论）
 
-```bash
-# 方式一：git 规格（在线，需 git）
+```powershell
+# ✅ 推荐：本地 tarball（免 git、免联网、免代理）
+dsh plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.1.0.tar.gz"
+
+# ✅ 联网方式（需要机器上有 git，且需代理）
 dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
-
-# 方式二：下载 Release 附件后本地安装
-dsh plugin --profile web add ./dsh-liuyao-0.1.0.tgz
 ```
 
-> ⚠️ Release 附件的**直链安装当前不可用**（`ERR_PNPM_MISSING_TARBALL_INTEGRITY`，属 DSH 安装器与
-> pnpm 的问题）。根因、已排除项与替代方案见 [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md)。
+| 方式 | 需 git | 需联网 | 实测 |
+|---|---|---|---|
+| 本地 `.tgz` / `.tar.gz` | ❌ | ❌ | ✅ 323ms |
+| `github:…#v0.1.0` | ✅ | ✅ | ✅ 4s |
+| Release 附件**直链** | ❌ | ✅ | ❌ `ERR_PNPM_MISSING_TARBALL_INTEGRITY` |
 
-## 二、⚠️ 安装前提：受限网络下必须给 Node/pnpm 设代理
+### 两个易踩的坑
 
-本机系统代理是 `127.0.0.1:7897`。**Node 的 fetch（undici）不读 Windows 系统代理**，
-而 `curl` 与 `git` 会读——所以会出现"curl 能下载、pnpm 却失败"的假象。实测表现：
+1. **`dsh` 命令默认不在 PATH 里**（DSH 桌面版如此）。真实入口是
+   `<安装目录>\resources\runtime\cli\bin\dsh.cmd`。给用户发东西时必须写清这一点。
+2. **扩展名有讲究**：`.tgz` 与 `.tar.gz` 都能装；`.tgz` 在 Windows 里常被当成未知类型而隐藏，
+   所以对外发送建议用 `.tar.gz`。**不要改成 `.zip`**（pnpm 按扩展名判断，会报
+   `ERR_PNPM_NOT_PACKAGE_DIRECTORY`）。
+
+> 直链失败的根因、已排除项与对照实验见 [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md)。
+
+## 二、⚠️ 受限网络下的代理前提
+
+**Node 的 fetch（undici）不读 Windows 系统代理**，而 `curl` 与 `git` 会读——于是出现
+"curl 能下载、pnpm 却失败"的假象。本地 tarball 方式不需要联网，不受影响；用联网方式时：
+
+```powershell
+$env:HTTP_PROXY='http://127.0.0.1:7897'    # 端口换成你自己代理的
+$env:HTTPS_PROXY='http://127.0.0.1:7897'
+$env:NODE_USE_ENV_PROXY='1'
+```
 
 | 症状 | 原因 |
 |---|---|
 | `TypeError: fetch failed` / `UND_ERR_CONNECT_TIMEOUT` | 没给 Node 设代理 |
 | `DEPTH_ZERO_SELF_SIGNED_CERT` | 走了代理但代理做了 TLS 拦截 |
 
-正确姿势（三条环境变量一起设）：
+## 三、剩余事项
 
-```powershell
-$env:HTTP_PROXY='http://127.0.0.1:7897'
-$env:HTTPS_PROXY='http://127.0.0.1:7897'
-$env:NODE_USE_ENV_PROXY='1'
-dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.1.0"
-```
+### 1. 看界面（只能你做，我无法读屏）
 
-> 方式二（本地 tarball）**不需要联网，也不受代理影响**——网络受限时优先用它。
+**完全退出 DSH 再重开**，刷新界面。重点确认：
 
-**这一条要写进用户须知**——否则用户会以为插件坏了。README 里已有相关说明。
+- 先天八卦底纹是否遮字／挡点击
+- 面板能否滚动到底
+- 排盘表格是否溢出、六行是否齐全
+- 「关于」面板在窄窗口下的排版、微信号复制按钮
+- 深色模式对比度
+- 「一卦一断」对话框的排版与拒答样式
 
-## 三、剩余事项（只需你做）
+### 2. 给朋友试用
 
-### 1. 截图（4 张，存到仓库 `assets/`）
+发 `dsh-liuyao-0.1.0.tar.gz`（约 387 KB），并附 [SHARE.md](SHARE.md)。
 
-我全程无法读屏，这一项只能你来。命名需与 `catalog-entry.json` 里的链接一致：
-
-| 文件名 | 内容 |
-|---|---|
-| `assets/screenshot-1.png` | 整帧先天八卦底纹 + 卦盘主面板（**首图，决定点击率**） |
-| `assets/screenshot-2.png` | 六爻排盘表（六神／伏神／六亲纳甲／本卦／变卦 六行齐全） |
-| `assets/screenshot-3.png` | 解读区（条文带典籍出处 + 末尾的通俗总结块） |
-| `assets/screenshot-4.png` | 一卦一断对话框（带一条真实问答与「已问 N / 上限」） |
-
-放在仓库根目录的 `assets/` 下，然后提交推送：
-
-```powershell
-cd C:\Users\24568\Documents\deepseek-harness\default-workspace\liuyao-dsh-plugin
-git add assets; git commit -m "docs: 界面截图"; git push
-```
-
-### 2. 提收录 PR
+### 3. 提收录 PR
 
 **时机：2026-10-11 14:32（北京时间）之后。** 仓库创建于 2026-10-10 14:32，
-gate 要求**仓库年龄 ≥ 1 天**；commit 门槛（≥ 10）你已有 20 个。
+gate 要求**仓库年龄 ≥ 1 天**；commit 门槛（≥ 10）已有 29 个。
 
-把 `catalog-entry.json` 的内容作为一条新条目，加进
+把 [catalog-entry.json](catalog-entry.json) 作为一条新条目加进
 [awesome-dsh-plugin/awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin)
 的 `plugins.json`，提 Pull Request。
 
-**gate 三条门槛与你的状态**
-
-| 门槛 | 状态 |
+| gate 门槛 | 状态 |
 |---|---|
-| 声明 `dsh.bundle` | ✅ 已有 |
+| 声明 `dsh.bundle` | ✅ |
 | 仓库年龄 ≥ 1 天 | ⏳ 2026-10-11 14:32 之后 |
-| commit 数 ≥ 10 | ✅ 20 个 |
+| commit 数 ≥ 10 | ✅ 29 个 |
 
 年龄不足时 PR 会显示 `repository is X.X days old (needs 1) — resubmit in about 15h`——
-这是**有意设计**（防刷收录），到点后官方 `regate.yml` 每 6 小时自动重跑并转绿。
-想提前可以往 PR 分支推一个空提交戳一下（官方指南说这是有效路径）。
+这是**有意设计**（防刷收录），到点后官方 `regate.yml` 每 6 小时自动重跑转绿。
 
-## 四、之后：变现放在服务侧
+## 四、发布包与仓库的已知不一致
 
-插件本体在这个生态没有付费通路（目录 4471 条，schema 无价格字段）。收入走：
-**一对一断卦咨询 · 定制开发（加门派规则／批量排盘／导出报告） · 教学 · 赞助**。
-详见 `PUBLISHING.md` 第五、六节。
+- **Release 附件**是 15:15 上传的（393,640 字节），**不含「关于」功能**
+- **仓库代码**已含「关于」功能，最新打包为 387.3 KB（`0df1fe2e…`）
 
----
+要一致，需要把 Release 附件换成最新包。**改由 npm 发布是更彻底的解法**：之后用户
+`dsh plugin add dsh-liuyao` 即可，免 git、免 tarball、免扩展名问题。
 
-## 附：本地仓库提交历史（20 个）
+## 五、之后：变现放在服务侧
 
-```
-ba1b9c0 docs: 安装链路公网实测记录、代理前提说明，并统一仓库 URL 为规范小写
-62676e5 docs: 上架材料（下一步清单、Release 文案、目录条目）与英文安装说明
-ec4cc39 merge: 合入 GitHub 建仓时的初始提交（README/.gitignore 以本仓库版本为准）
-6be25cc fix(scripts): 用退出码判断暂存区，避免受限环境下管道 stdio 失败
-1c6c502 chore: 仓库准备脚本
-741ccaa docs: Agent 断卦作业规程与验证记录
-2b9d036 docs: 使用说明、英文 README 与上架手册
-cbebd74 feat(client): 卦盘 Web 界面
-2bbe659 test: asar 读取辅助工具
-c5fb39d feat(host): 插件 Host 半
-23a9034 feat(followup): 一卦一断
-910383c feat(summary): 通俗总结
-2516207 feat(format): 与参考图同序的文本排盘
-fe2a37b feat(analysis): 断卦依据引擎
-c51f39c feat(engine): 排盘引擎
-579c8ad feat(hexagrams): 六十四卦索引、纳甲装配、八宫世应与伏神
-699c1e2 feat(constants): 纳甲、八宫、六亲、六神、长生、神煞数据表
-feee92d feat(calendar): 干支历与农历换算
-ba27673 chore: 初始化插件包骨架
-a5a7bbb （GitHub 建仓时自动生成的初始提交）
-```
+插件本体在这个生态没有付费通路。收入走：**一对一断卦咨询 · 定制开发 · 教学 · 赞助**，
+联系方式已内置在面板「关于」里（微信号 `Ljx_0609300`）。详见 [PUBLISHING.md](PUBLISHING.md)。
