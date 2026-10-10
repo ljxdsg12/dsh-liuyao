@@ -863,39 +863,82 @@ window.__ModuleLoader__.load({
 			return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()) + " " + p2(d.getHours()) + ":" + p2(d.getMinutes());
 		}
 
+		// ——————— 面板状态缓存 ———————
+		// 面板在 DSH 里是随槽位挂载/卸载的：切到对话再切回来，组件会被重建，React 状态全部丢失，
+		// 表现就是「退出对话后面板回到初始界面」。本模块由 ModuleLoader 加载一次并常驻，
+		// 所以用一个模块级对象把界面状态留在内存里，重挂载时恢复。
+		//
+		// 有意不落盘（不写 localStorage）：一是「关于」里声明了不保存任何起卦记录，
+		// 二是卦象属隐私内容，不该在磁盘留痕。刷新页面即清空。
+		var boardCache = {
+			seeded: false,
+			opening: "",
+			topic: "",
+			time: "",
+			mode: "manual",
+			manual: ["", "", "", "", "", ""],
+			tossed: [null, null, null, null, null, null],
+			tossRound: 0,
+			lastToss: null,
+			result: null,
+			aiMode: true,
+			aiText: "",
+			aiError: "",
+			aiNotice: "",
+		};
+
 		function Board(props) {
 			var api = props.api;
-			var [opening, setOpening] = React.useState("");
-			var [topic, setTopic] = React.useState("");
-			var [time, setTime] = React.useState(nowString());
-			var [mode, setMode] = React.useState("manual");
-			var [yao, setYao] = React.useState([null, null, null, null, null, null]);
-			var [manual, setManual] = React.useState(["", "", "", "", "", ""]);
-			var [tossState, setTossState] = React.useState({ round: 0, busy: false, last: null });
+			// 首次进入取当前时间；之后复用缓存的时间，避免每次切回来时间都被改写
+			if (!boardCache.seeded) { boardCache.time = nowString(); boardCache.seeded = true }
+			// 组件是否仍挂载：流式回包可能在用户切走之后到达，此时只更新缓存、不 setState
+			var mounted = React.useRef(true);
+			React.useEffect(function () {
+				mounted.current = true;
+				return function () { mounted.current = false };
+			}, []);
+			/** 写状态 + 同步缓存（两条路径，保证切走再回来能看到同样的内容） */
+			function put(key, value, setter) {
+				boardCache[key] = typeof value === "function" ? value(boardCache[key]) : value;
+				if (mounted.current) setter(boardCache[key]);
+			}
+
+			var [opening, setOpening] = React.useState(boardCache.opening);
+			var [topic, setTopic] = React.useState(boardCache.topic);
+			var [time, setTime] = React.useState(boardCache.time);
+			var [mode, setMode] = React.useState(boardCache.mode);
+			var [yao, setYao] = React.useState(boardCache.tossed);
+			var [manual, setManual] = React.useState(boardCache.manual);
+			var [tossState, setTossState] = React.useState({ round: boardCache.tossRound, busy: false, last: boardCache.lastToss });
 			var [confirmEach, setConfirmEach] = React.useState(props.requireConfirmEach !== false);
 			var [awaiting, setAwaiting] = React.useState(false);
-			var [result, setResult] = React.useState(null);
+			var [result, setResult] = React.useState(boardCache.result);
 			var [error, setError] = React.useState("");
 			var [busy, setBusy] = React.useState(false);
 			var [showRaw, setShowRaw] = React.useState(false);
 			var [about, setAbout] = React.useState(null);
 			var [aboutOpen, setAboutOpen] = React.useState(false);
 			// AI 断卦（默认走 AI；盘面事实仍由规则引擎算出后交给模型）
-			var [aiMode, setAiMode] = React.useState(true);
-			var [aiText, setAiText] = React.useState("");
+			var [aiMode, setAiMode] = React.useState(boardCache.aiMode);
+			var [aiText, setAiText] = React.useState(boardCache.aiText);
 			var [aiStreaming, setAiStreaming] = React.useState(false);
-			var [aiError, setAiError] = React.useState("");
-			var [aiNotice, setAiNotice] = React.useState("");
-			var aiAbort = React.useRef(null);
+			var [aiError, setAiError] = React.useState(boardCache.aiError);
+			var [aiNotice, setAiNotice] = React.useState(boardCache.aiNotice);
 
 			React.useEffect(function () {
 				var alive = true;
 				if (!api) { setError("与 Host 的连接不可用"); return undefined; }
-				api.opening().then(function (v) { if (alive) setOpening(v.opening); }).catch(function () {});
+				if (!boardCache.opening) {
+					api.opening().then(function (v) {
+						boardCache.opening = v.opening;
+						if (mounted.current) setOpening(v.opening);
+					}).catch(function () {});
+				}
 				api.config().then(function (v) {
 					if (alive && v && v.config) {
 						setConfirmEach(v.config.requireConfirmEach !== false);
-						setAiMode(v.config.analysisMode !== "rule");
+						boardCache.aiMode = v.config.analysisMode !== "rule";
+						setAiMode(boardCache.aiMode);
 						if (v.config.aboutEnabled !== false && typeof api.about === "function") {
 							api.about().then(function (a) { if (alive && a && a.value) setAbout(a.value); }).catch(function () {});
 						}
@@ -913,13 +956,20 @@ window.__ModuleLoader__.load({
 			function doToss() {
 				setError("");
 				setTossState(function (s) { return { round: s.round, busy: true, last: s.last }; });
+				var roundNow = tossState.round;
 				api.toss().then(function (v) {
 					setYao(function (prev) {
 						var next = prev.slice();
-						next[tossState.round] = v.value;
+						next[roundNow] = v.value;
+						boardCache.tossed = next;
 						return next;
 					});
-					setTossState(function (s) { return { round: s.round + 1, busy: false, last: v }; });
+					setTossState(function (s) {
+						var next = { round: s.round + 1, busy: false, last: v };
+						boardCache.tossRound = next.round;
+						boardCache.lastToss = next.last;
+						return next;
+					});
 					setAwaiting(false);
 				}).catch(function (e) {
 					setError(String(e.message || e));
@@ -934,38 +984,54 @@ window.__ModuleLoader__.load({
 			}
 
 			function resetToss() {
+				boardCache.tossed = [null, null, null, null, null, null];
+				boardCache.tossRound = 0;
+				boardCache.lastToss = null;
 				setYao([null, null, null, null, null, null]);
 				setTossState({ round: 0, busy: false, last: null });
 				setAwaiting(false);
+				boardCache.result = null;
 				setResult(null);
 				setError("");
 				stopAi();
 			}
 
 			// —— AI 断卦的流式状态 ——
+			// 流式过程不因面板卸载而中断：切走后回包只写缓存，切回来时能直接看到完整结果。
+			var activeAi = React.useRef(null);
+
 			function stopAi() {
-				if (aiAbort.current) { try { aiAbort.current.abort() } catch (e) {} aiAbort.current = null }
-				setAiText("");
-				setAiStreaming(false);
-				setAiError("");
+				if (activeAi.current) { try { activeAi.current.abort() } catch (e) {} activeAi.current = null }
+				boardCache.aiText = "";
+				boardCache.aiError = "";
+				boardCache.aiNotice = "";
+				if (mounted.current) { setAiText(""); setAiStreaming(false); setAiError(""); setAiNotice("") }
 			}
 
 			function runAiAnalysis(body) {
 				var controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
-				aiAbort.current = controller;
-				setAiText("");
-				setAiError("");
-				setAiStreaming(true);
+				activeAi.current = controller;
+				boardCache.aiText = "";
+				boardCache.aiError = "";
+				boardCache.aiNotice = "";
+				if (mounted.current) { setAiText(""); setAiError(""); setAiNotice(""); setAiStreaming(true) }
 				api.analyzeAi(body, function (ev) {
-					if (ev.type === "delta") setAiText(function (prev) { return prev + ev.text });
-					else if (ev.type === "notice") setAiNotice(ev.text);
-					else if (ev.type === "error") { setAiError(ev.text || "AI 断卦失败"); }
+					if (ev.type === "delta") {
+						boardCache.aiText += ev.text;
+						if (mounted.current) setAiText(boardCache.aiText);
+					} else if (ev.type === "notice") {
+						boardCache.aiNotice = ev.text;
+						if (mounted.current) setAiNotice(ev.text);
+					} else if (ev.type === "error") {
+						boardCache.aiError = ev.text || "AI 断卦失败";
+						if (mounted.current) setAiError(boardCache.aiError);
+					}
 				}, controller ? controller.signal : undefined)
-					.then(function () { setAiStreaming(false) })
+					.then(function () { if (mounted.current) setAiStreaming(false) })
 					.catch(function (e) {
 						if (String(e && e.name) === "AbortError") return;
-						setAiError(String((e && e.message) || e));
-						setAiStreaming(false);
+						boardCache.aiError = String((e && e.message) || e);
+						if (mounted.current) { setAiError(boardCache.aiError); setAiStreaming(false) }
 					});
 			}
 
@@ -977,6 +1043,7 @@ window.__ModuleLoader__.load({
 				var body = { time: time, yao: values, topic: topic };
 				api.cast(body)
 					.then(function (v) {
+						boardCache.result = v;
 						setResult(v);
 						setBusy(false);
 						// AI 断卦：盘面（含规则引擎算出的事实）已就绪，交给模型推理
@@ -990,19 +1057,19 @@ window.__ModuleLoader__.load({
 					h("span", { className: "ly-label" }, "起卦方式"),
 					h("button", {
 						className: "ly-btn" + (mode === "manual" ? "" : " ghost"),
-						onClick: function () { setMode("manual"); },
+						onClick: function () { boardCache.mode = "manual"; setMode("manual"); },
 					}, "手工输入卦象"),
 					h("button", {
 						className: "ly-btn" + (mode === "toss" ? "" : " ghost"),
-						onClick: function () { setMode("toss"); },
+						onClick: function () { boardCache.mode = "toss"; setMode("toss"); },
 					}, "电脑摇卦（三枚铜钱）"),
 				),
 				mode === "manual"
 					? h("div", null,
 						h("div", { className: "ly-row" },
 							h("span", { className: "ly-label" }, "起卦时间"),
-							h("input", { className: "ly-input", value: time, onChange: function (e) { setTime(e.target.value); }, placeholder: "YYYY-MM-DD HH:mm" }),
-							h("button", { className: "ly-btn ghost", onClick: function () { setTime(nowString()); } }, "取当前时间"),
+							h("input", { className: "ly-input", value: time, onChange: function (e) { boardCache.time = e.target.value; setTime(e.target.value); }, placeholder: "YYYY-MM-DD HH:mm" }),
+							h("button", { className: "ly-btn ghost", onClick: function () { boardCache.time = nowString(); setTime(boardCache.time); } }, "取当前时间"),
 						),
 						h("div", { className: "ly-grid" },
 							POS_NAMES.map(function (p, i) {
@@ -1020,6 +1087,7 @@ window.__ModuleLoader__.load({
 											setManual(function (prev) {
 												var next = prev.slice();
 												next[i] = e.target.value;
+												boardCache.manual = next;
 												return next;
 											});
 										},
@@ -1034,8 +1102,8 @@ window.__ModuleLoader__.load({
 					: h("div", null,
 						h("div", { className: "ly-row" },
 							h("span", { className: "ly-label" }, "起卦时间"),
-							h("input", { className: "ly-input", value: time, onChange: function (e) { setTime(e.target.value); } }),
-							h("button", { className: "ly-btn ghost", onClick: function () { setTime(nowString()); } }, "取当前时间"),
+							h("input", { className: "ly-input", value: time, onChange: function (e) { boardCache.time = e.target.value; setTime(e.target.value); } }),
+							h("button", { className: "ly-btn ghost", onClick: function () { boardCache.time = nowString(); setTime(boardCache.time); } }, "取当前时间"),
 							h("label", { className: "ly-toggle" },
 								h("input", { type: "checkbox", checked: confirmEach, onChange: function (e) { setConfirmEach(e.target.checked); } }),
 								"每抛一次前确认",
@@ -1094,7 +1162,7 @@ window.__ModuleLoader__.load({
 					h("input", {
 						className: "ly-input", style: { minWidth: 280 }, value: topic,
 						placeholder: "如：问今年财运 / 问考试能否通过 / 问与某人合作",
-						onChange: function (e) { setTopic(e.target.value); },
+						onChange: function (e) { boardCache.topic = e.target.value; setTopic(e.target.value); },
 					}),
 					h("button", { className: "ly-btn", onClick: cast, disabled: busy || !allFilled }, busy ? "排盘中…" : "起卦 / 排盘"),
 				),
@@ -1146,13 +1214,13 @@ window.__ModuleLoader__.load({
 								h("button", {
 									className: "ly-btn" + (aiMode ? "" : " ghost"),
 									onClick: function () {
-										setAiMode(true);
+										boardCache.aiMode = true; setAiMode(true);
 										if (!aiText && !aiStreaming) runAiAnalysis({ time: time, yao: values, topic: topic });
 									},
 								}, "AI 断卦"),
 								h("button", {
 									className: "ly-btn" + (aiMode ? " ghost" : ""),
-									onClick: function () { stopAi(); setAiMode(false) },
+									onClick: function () { stopAi(); boardCache.aiMode = false; setAiMode(false) },
 								}, "规则断卦"),
 								aiMode && !aiStreaming && aiText
 									? h("button", {

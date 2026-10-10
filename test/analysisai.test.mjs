@@ -220,7 +220,7 @@ check(clientSrc.includes('parseAiMarkdown'), '客户端有 Markdown 解析')
 check(clientSrc.includes('AiAnalysisView'), '客户端有 AI 断卦视图')
 check(clientSrc.includes('断卦方式'), '客户端有断卦方式切换')
 check(clientSrc.includes('规则断卦'), '客户端保留规则断卦入口')
-check(/setAiMode\(v\.config\.analysisMode !== "rule"\)/.test(clientSrc), '默认随配置走 AI')
+check(/boardCache\.aiMode = v\.config\.analysisMode !== "rule"/.test(clientSrc), '默认随配置走 AI（并写入状态缓存）')
 
 console.log(fail === 0 ? '\n全部通过' : `\n失败 ${fail} 项`)
 process.exit(fail === 0 ? 0 : 1)
