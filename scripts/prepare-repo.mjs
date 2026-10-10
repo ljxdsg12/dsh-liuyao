@@ -128,11 +128,11 @@ if (hasStaged()) {
 
 run(['tag', '-a', `v${pkg.version}`, '-m', `dsh-liuyao ${pkg.version}`])
 
-// 统计提交数：写入临时文件再读，避免管道 stdio
+// 统计提交数：git 直接写文件再读，避免在受限环境里用管道捕获子进程输出
 const countFile = join(root, '.git', 'commit-count.txt')
-spawnSync(git, ['rev-list', '--count', 'HEAD'], { cwd: root, stdio: ['ignore', 'inherit', 'inherit'] })
-const countResult = spawnSync(git, ['rev-list', '--count', 'HEAD'], { cwd: root, encoding: 'utf8' })
-const total = (countResult.stdout ?? '').trim()
-process.stdout.write(`\n完成：本次新建 ${made} 个提交，仓库共有 ${total || '?'} 个提交，已打标签 v${pkg.version}\n`)
+rmSync(countFile, { force: true })
+run(['rev-list', '--count', '--output=' + countFile.replace(/\\/g, '/'), 'HEAD'])
+const total = existsSync(countFile) ? readFileSync(countFile, 'utf8').trim() : '?'
+process.stdout.write(`\n完成：本次新建 ${made} 个提交，仓库共有 ${total} 个提交，已打标签 v${pkg.version}\n`)
 process.stdout.write('查看：git log --oneline\n')
 rmSync(countFile, { force: true })
