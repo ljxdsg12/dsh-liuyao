@@ -275,7 +275,7 @@ check(streamed.events.some(e => e.type === 'done'), '以 done 事件收束')
 const doneText = streamed.events.find(e => e.type === 'done')?.text ?? ''
 check(doneText === '三爻妻财动而化回头克，钱难留。', 'done 文本为全部增量拼接', doneText)
 check(modelCalls.length === 1, '恰好调用一次模型', String(modelCalls.length))
-check(modelCalls[0].system.includes('一卦一断') && modelCalls[0].system.includes('山火贲'), '系统提示词含一卦一断与卦象')
+check(modelCalls[0].system.includes('同一个问题域') && modelCalls[0].system.includes('山火贲'), '系统提示词含同域作答要求与卦象')
 check(modelCalls[0].system.includes('三爻') && modelCalls[0].system.includes('回头克'), '提示词含具体爻象')
 check(modelCalls[0].messages.length === 1 && modelCalls[0].messages[0].role === 'user', '消息只含本次提问', JSON.stringify(modelCalls[0].messages.map(m => m.role)))
 check(modelCalls[0].provider === 'deepseek-official' && modelCalls[0].model === 'deepseek-flash', '使用默认模型', `${modelCalls[0].provider}/${modelCalls[0].model}`)

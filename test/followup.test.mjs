@@ -65,9 +65,10 @@ check(!ctxText.includes('undefined') && !ctxText.includes('NaN'), '无未定义�
 
 console.log('--- 提示词约束 ---')
 const prompt = buildAskSystemPrompt({ chartText: ctxText, topic: '问今年财运', questionCount: 1, maxQuestions: 6 })
-check(prompt.includes('一卦一断'), '提示词写明一卦一断')
+// 放宽后不再要求用户点到具体爻，所以检查"同域即答"这一功能要求，而非字面短语
+check(prompt.includes('同一个问题域') && prompt.includes('不要求用户点到具体爻'), '提示词要求同域追问即作答、不要求点到具体爻')
 check(prompt.includes('问今年财运'), '提示词写明所问之事')
-check(prompt.includes('另起一卦'), '提示词要求偏离时引导另起一卦')
+check(prompt.includes('另起一卦'), '提示词要求偏离到另一件事时引导另起一卦')
 check(prompt.includes('不得凭空编造'), '提示词禁止编造')
 check(prompt.includes('典籍出处'), '提示词要求注明出处')
 check(prompt.includes('心诚则灵'), '提示词点名禁止套话')
