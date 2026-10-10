@@ -16,7 +16,38 @@ const check = (ok, label, extra = '') => {
 }
 
 // ---------- 桩：捕获 system 与 messages，返回预置的流式片段 ----------
-const captured = { system: '', messages: null, calls: 0 }
+// 关键：桩模仿 DSH 真实的「准备—派发」两段式校验——prepareCall 解析出完整配置（含默认值），
+// stream() 的入参必须与之逐字段相等，否则 DSH 抛 INVALID_PREPARED_CALL。
+// 桩里做同样校验，才能测出「只传 provider/model」这类调用错误。
+const captured = { system: '', messages: null, calls: 0, streamArgs: null }
+
+const RESOLVED_CONFIG = {
+  provider: 'deepseek-official',
+  model: 'deepseek-flash',
+  // 下面两个是 DSH 会补上的默认值，正是「不传回就失败」的字段
+  reasoningEffort: 'medium',
+  temperature: 1,
+  maxTokens: 8192,
+}
+
+// 只比对「请求控制」字段，不比对 system/messages —— 与 DSH 的 callConfigEquals 一致
+// （DSH 比的是 provider / model / reasoningEffort / temperature / maxTokens / stop）
+const CONFIG_KEYS = ['provider', 'model', 'reasoningEffort', 'temperature', 'maxTokens', 'stop']
+
+function configEquals(a, b) {
+  for (const k of CONFIG_KEYS) {
+    const av = a?.[k]
+    const bv = b?.[k]
+    if (Array.isArray(av) || Array.isArray(bv)) {
+      if (!Array.isArray(av) || !Array.isArray(bv) || av.length !== bv.length) return false
+      if (!av.every((x, i) => x === bv[i])) return false
+      continue
+    }
+    if (av !== bv) return false
+  }
+  return true
+}
+
 const FAKE_REPLY = [
   '## 用神取用',
   '所问「问事业」，依《增删卜易·用神章》以官鬼为用神。',
@@ -34,19 +65,29 @@ const FAKE_REPLY = [
 ].join('\n')
 
 const fakeLlm = {
-  prepareCall: async () => ({
-    stream: async function* (params) {
-      captured.calls += 1
-      captured.system = params.system
-      captured.messages = params.messages
-      // 分片输出，模拟真实流式
-      const step = 24
-      for (let i = 0; i < FAKE_REPLY.length; i += step) {
-        yield { type: 'text-delta', text: FAKE_REPLY.slice(i, i + step) }
-      }
-      yield { type: 'finish', reason: { kind: 'stop' } }
-    },
-  }),
+  async prepareCall(config) {
+    const resolved = { ...RESOLVED_CONFIG, ...config }
+    return {
+      config: resolved,
+      adapterDefaults: { reasoningEffort: true },
+      stream: async function* (options) {
+        captured.streamArgs = options
+        if (!configEquals(options, resolved)) {
+          const err = new Error('prepared LLM call config changed before adapter dispatch')
+          err.code = 'INVALID_PREPARED_CALL'
+          throw err
+        }
+        captured.calls += 1
+        captured.system = options.system
+        captured.messages = options.messages
+        const step = 24
+        for (let i = 0; i < FAKE_REPLY.length; i += step) {
+          yield { type: 'text-delta', text: FAKE_REPLY.slice(i, i + step) }
+        }
+        yield { type: 'finish', reason: { kind: 'stop' } }
+      },
+    }
+  },
 }
 
 // ---------- 装载 Host 半 ----------
@@ -128,6 +169,21 @@ check(!sys.includes('undefined'), '提示词无 undefined 残留')
 check(!sys.includes('[object Object]'), '提示词无对象序列化残留')
 
 function session_count(s) { return (s.match(/^· /gm) ?? []).length }
+
+console.log('--- 派发契约（回归防护）---')
+check(captured.streamArgs !== null, 'stream 被调用并记录了入参')
+check(captured.streamArgs && captured.streamArgs.reasoningEffort === RESOLVED_CONFIG.reasoningEffort,
+  'stream 入参保留了 DSH 解析出的 reasoningEffort（漏传即 INVALID_PREPARED_CALL）', String(captured.streamArgs?.reasoningEffort))
+check(captured.streamArgs && captured.streamArgs.maxTokens === RESOLVED_CONFIG.maxTokens,
+  'stream 入参保留了 maxTokens', String(captured.streamArgs?.maxTokens))
+check(captured.streamArgs && captured.streamArgs.temperature === RESOLVED_CONFIG.temperature,
+  'stream 入参保留了 temperature', String(captured.streamArgs?.temperature))
+check(captured.streamArgs && typeof captured.streamArgs.system === 'string' && captured.streamArgs.system.length > 0,
+  'stream 入参带 system')
+check(captured.streamArgs && Array.isArray(captured.streamArgs.messages), 'stream 入参带 messages')
+// 反向验证：只传 provider/model 的旧写法必须被判为不合法
+check(!configEquals({ provider: 'deepseek-official', model: 'deepseek-flash' }, RESOLVED_CONFIG),
+  '只传 provider/model 会被判为配置不符（正是先前那个 bug）')
 
 console.log('--- 消息体 ---')
 check(Array.isArray(captured.messages) && captured.messages.length === 1, '只有一条 user 消息')
