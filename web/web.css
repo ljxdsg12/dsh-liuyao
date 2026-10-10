@@ -106,3 +106,70 @@
 }
 .ly-btn.primary:hover { filter: brightness(1.08); }
 .ly-btn.ghost { background: transparent; }
+
+/* ============================================================
+   先天八卦底纹
+   ------------------------------------------------------------
+   关键：固定定位铺满视口，pointer-events:none —— 因此永不遮盖
+   文字、也永不拦截点击（插件里踩过这个坑：用覆盖层会挡交互）。
+   ============================================================ */
+.ly-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.ly-backdrop svg {
+  width: min(92vmin, 940px);
+  height: min(92vmin, 940px);
+  flex: 0 0 auto;
+}
+/* 内容层必须浮在底纹之上 */
+body > .ly-panel,
+body > .ly-footer { position: relative; z-index: 1; }
+
+/* ============================================================
+   关于面板
+   ============================================================ */
+.ly-head-actions { margin-left: auto; align-self: center; }
+
+.ly-about {
+  margin: 12px 0 4px;
+  padding: 16px 18px;
+  background: var(--dsw-alias-bg-layer-2);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-lg);
+  box-shadow: var(--dsw-shadow-lv1);
+}
+.ly-about-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding-bottom: 10px; border-bottom: 1px solid var(--dsw-alias-border-l1);
+}
+.ly-about-name { font-size: 16px; font-weight: 600; letter-spacing: .04em; }
+.ly-about-ver {
+  font-size: 12px; color: var(--dsw-alias-brand-primary);
+  border: 1px solid var(--dsw-alias-border-l2); border-radius: 999px; padding: 1px 8px;
+}
+.ly-about-lic { font-size: 12px; color: var(--dsw-alias-label-secondary); }
+.ly-about-sec { margin-top: 14px; min-width: 0; }
+.ly-about-sec h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+.ly-about-ul { margin: 0; padding-left: 18px; color: var(--dsw-alias-label-secondary); }
+.ly-about-ul li { margin: 3px 0; overflow-wrap: anywhere; }
+.ly-about-row { display: flex; gap: 10px; align-items: baseline; margin-top: 4px; min-width: 0; flex-wrap: wrap; }
+.ly-about-k { color: var(--dsw-alias-label-secondary); font-size: 12px; flex: 0 0 auto; }
+.ly-about-v { min-width: 0; overflow-wrap: anywhere; }
+.ly-about-a { color: var(--dsw-alias-brand-primary); text-decoration: none; overflow-wrap: anywhere; }
+.ly-about-a:hover { text-decoration: underline; }
+.ly-about-wechat { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0 4px; }
+.ly-about-code {
+  font-family: var(--dsw-font-mono); font-size: 12px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 6px; padding: 2px 7px; overflow-wrap: anywhere;
+}
+.ly-about-close { margin-left: auto; }
+

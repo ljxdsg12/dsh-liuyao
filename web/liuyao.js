@@ -123,3 +123,35 @@ export function yaoOptionText(value) {
   const info = YAO_INFO[value]
   return `${info.marks}　${info.name} ${info.coins}（${info.moving ? '动' : '静'}）`
 }
+
+// ---------------------------------------------------------------
+// 关于：与 DSH 插件「关于」面板同源的内容（版本、透明、免责、咨询）
+// 纯静态展示；项目地址由浏览器打开，本站自身不发起任何网络请求。
+// ---------------------------------------------------------------
+export const ABOUT = {
+  name: '六爻·纳甲',
+  version: '0.1.0',
+  license: 'MIT',
+  repository: 'https://github.com/ljxdsg12/dsh-liuyao',
+  feedbackUrl: 'https://github.com/ljxdsg12/dsh-liuyao/issues',
+  consultWechat: 'Ljx_0609300',
+  sponsorNote: '本站免费开源（MIT）。若它帮到了你，欢迎赞助；也承接六爻排盘与断卦相关的定制开发、教学。',
+  privacy: [
+    '本页是纯静态网页：所有排盘与断卦都在你的浏览器里完成，不上传任何数据。',
+    '没有后端、没有数据库、不记录你所问之事，也不保存任何起卦记录。',
+    '刷新或关闭页面后，输入内容即消失（无本地存储）。',
+  ],
+  disclaimer: [
+    '干支历、纳甲、六亲、神煞均按典籍规则推算，断语逐条注明出处；典籍无明文者不作推断。',
+    '本工具属中国传统文化研究工具，仅供文化参考与娱乐，不构成医疗、法律、投资或其他专业建议。',
+    '不承诺任何预测准确率。请勿据以做出重大决定。',
+  ],
+}
+
+// 历法自检锚点：干支历以天文算法推算，下列结果与通胜万年历逐字核对
+export const CALENDAR_ANCHORS = [
+  { date: '1949-10-01', expected: '己丑年 癸酉月 甲子日 农历八月初十' },
+  { date: '2008-12-23', expected: '戊子年 甲子月 丁酉日 甲辰时 空辰巳 冬月廿六' },
+  { date: '2026-10-10', expected: '丙午年 戊戌月 丁巳日 九月初一' },
+]
+

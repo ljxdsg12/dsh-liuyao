@@ -4,8 +4,9 @@
 
 import {
   cast, opening, toss, nowText,
-  YAO_ORDER, yaoOptionText,
+  YAO_ORDER, yaoOptionText, ABOUT, CALENDAR_ANCHORS,
 } from './liuyao.js'
+import { mountBackdrop } from './bagua.js'
 
 // ---------------------------------------------------------------
 // DOM 小工具
@@ -170,9 +171,91 @@ function analysisView(analysis) {
 }
 
 // ---------------------------------------------------------------
+// 关于面板（与插件「关于」同源内容；纯静态，不发起网络请求）
+// ---------------------------------------------------------------
+function aboutRow(k, ...value) {
+  return el('div', { class: 'ly-about-row' },
+    el('span', { class: 'ly-about-k' }, k),
+    el('span', { class: 'ly-about-v' }, ...value),
+  )
+}
+
+function copyText(text, btn) {
+  const done = () => {
+    const old = btn.textContent
+    btn.textContent = '已复制'
+    setTimeout(() => { btn.textContent = old }, 1500)
+  }
+  try {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(done, done)
+      return
+    }
+  } catch { /* 剪贴板不可用则退化为手工选择 */ }
+  done()
+}
+
+function aboutPanel(onClose) {
+  const copyBtn = el('button', { class: 'ly-btn ghost' }, '复制')
+  copyBtn.addEventListener('click', () => copyText(ABOUT.consultWechat, copyBtn))
+
+  return el('div', { class: 'ly-about' },
+    el('div', { class: 'ly-about-head' },
+      el('span', { class: 'ly-about-name' }, ABOUT.name),
+      el('span', { class: 'ly-about-ver' }, 'v' + ABOUT.version),
+      el('span', { class: 'ly-about-lic' }, ABOUT.license),
+      el('button', { class: 'ly-btn ghost ly-about-close', onClick: onClose }, '收起'),
+    ),
+
+    el('div', { class: 'ly-about-sec' },
+      el('h4', {}, '这是什么'),
+      el('p', { class: 'ly-summary-p' },
+        '在线六爻纳甲排盘与断卦：先天八卦为盘、火珠林纳甲为法、增删卜易为断。排盘与断语逐条注明典籍出处，典籍无明文者不作推断。'),
+      aboutRow('项目地址', el('a', { class: 'ly-about-a', href: ABOUT.repository, target: '_blank', rel: 'noreferrer' }, ABOUT.repository)),
+      aboutRow('问题反馈', el('a', { class: 'ly-about-a', href: ABOUT.feedbackUrl, target: '_blank', rel: 'noreferrer' }, ABOUT.feedbackUrl)),
+    ),
+
+    el('div', { class: 'ly-about-sec' },
+      el('h4', {}, '数据透明'),
+      el('ul', { class: 'ly-about-ul' }, ...ABOUT.privacy.map((t) => el('li', {}, t))),
+    ),
+
+    el('div', { class: 'ly-about-sec' },
+      el('h4', {}, '咨询与赞助'),
+      el('p', { class: 'ly-summary-p' }, ABOUT.sponsorNote),
+      el('div', { class: 'ly-about-wechat' },
+        el('span', { class: 'ly-about-k' }, '微信号'),
+        el('code', { class: 'ly-about-code' }, ABOUT.consultWechat),
+        copyBtn,
+      ),
+      el('div', { class: 'ly-src' }, '加微信请注明来意（咨询／定制／赞助）。本站免费开源，赞助与咨询都自愿。'),
+    ),
+
+    el('div', { class: 'ly-about-sec' },
+      el('h4', {}, '免责与边界'),
+      el('ul', { class: 'ly-about-ul' }, ...ABOUT.disclaimer.map((t) => el('li', {}, t))),
+    ),
+
+    el('div', { class: 'ly-about-sec' },
+      el('h4', {}, '历法自检锚点'),
+      el('div', { class: 'ly-src' }, '干支历以天文算法推算（定气定朔），下列结果与通胜万年历逐字核对：'),
+      el('ul', { class: 'ly-about-ul' },
+        ...CALENDAR_ANCHORS.map((a) => el('li', {},
+          el('code', { class: 'ly-about-code' }, a.date), ' → ' + a.expected)),
+      ),
+    ),
+  )
+}
+
+// ---------------------------------------------------------------
 // 主界面
 // ---------------------------------------------------------------
 const app = $('#app')
+
+// 先天八卦底纹：进页面即铺上（固定层 + pointer-events:none，不挡内容与点击）
+if (!document.querySelector('[data-liuyao-backdrop]')) {
+  mountBackdrop({ opacity: 0.055 })
+}
 
 const state = {
   mode: 'manual',
@@ -185,6 +268,7 @@ const state = {
   openingText: null,
   result: null,
   error: '',
+  aboutOpen: false,
 }
 
 const currentYao = () => (state.mode === 'manual'
@@ -215,6 +299,19 @@ function doCast() {
 function render() {
   clear(app)
   if (!state.openingText) state.openingText = opening().opening
+
+  // 页头：标题 + 关于开关
+  app.append(el('div', { class: 'ly-head' },
+    el('div', { class: 'ly-title' }, '六爻·纳甲'),
+    el('div', { class: 'ly-sub' }, '先天八卦为盘　火珠林纳甲为法　增删卜易为断'),
+    el('div', { class: 'ly-head-actions' },
+      el('button', {
+        class: 'ly-btn ghost',
+        onClick: () => { state.aboutOpen = !state.aboutOpen; render() },
+      }, state.aboutOpen ? '收起关于' : '关于'),
+    ),
+  ))
+  if (state.aboutOpen) app.append(aboutPanel(() => { state.aboutOpen = false; render() }))
 
   // 开场辞
   app.append(el('div', { class: 'ly-card' }, el('div', { class: 'ly-opening' }, state.openingText)))

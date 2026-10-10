@@ -76,12 +76,18 @@ function makeEl(tag) {
       for (const k of kids) {
         if (k && typeof k === 'object' && 'tagName' in k) { k.parentNode = this; this.childNodes.push(k) }
         else if (k !== null && k !== undefined) {
-          // el() 会把字符串子节点用 createTextNode 包装，但桩的 append 也可能直接收到字符串
           this.childNodes.push({ nodeType: 3, textContent: String(k), tagName: '#text', childNodes: [] })
         }
       }
     },
     removeChild(c) { const i = this.childNodes.indexOf(c); if (i >= 0) this.childNodes.splice(i, 1) },
+    insertBefore(newNode, ref) {
+      const i = ref ? this.childNodes.indexOf(ref) : -1
+      if (i >= 0) this.childNodes.splice(i, 0, newNode)
+      else this.childNodes.unshift(newNode)
+      newNode.parentNode = this
+      return newNode
+    },
     setAttribute(k, v) { this.attributes[k] = v },
     getAttribute(k) { return this.attributes[k] },
     addEventListener(type, fn) { (this.listeners[type] ??= []).push(fn) },
@@ -91,12 +97,24 @@ function makeEl(tag) {
   return node
 }
 
+// 支持 createElementNS 与 body 插入（八卦底纹要用）
+const bodyEl = makeEl('body')
 const rootEl = makeEl('div')
 rootEl.id = 'app'
+
 const documentStub = {
+  head: makeEl('head'),
+  body: bodyEl,
   createElement: makeEl,
-  createTextNode: (t) => ({ nodeType: 3, textContent: String(t), tagName: '#text' }),
-  querySelector: (sel) => (sel === '#app' ? rootEl : null),
+  createElementNS: (ns, tag) => { const n = makeEl(tag); n.namespaceURI = ns; return n },
+  createTextNode: (t) => ({ nodeType: 3, textContent: String(t), tagName: '#text', childNodes: [] }),
+  querySelector: (sel) => {
+    if (sel === '#app') return rootEl
+    if (sel === '[data-liuyao-backdrop]') {
+      return bodyEl.childNodes.find((c) => c.dataset?.liuyaoBackdrop === '1') ?? null
+    }
+    return null
+  },
 }
 
 globalThis.document = documentStub
@@ -195,6 +213,69 @@ if (manualBtn) {
   manualBtn.listeners.click?.[0]?.()
   const after = collect()
   check(after.includes('请选择'), '回到手工模式，下拉复位')
+}
+
+// ---------- 3) 先天八卦底纹 ----------
+console.log('--- 先天八卦底纹 ---')
+const backdrop = bodyEl.childNodes.find((c) => c.dataset?.liuyaoBackdrop === '1')
+check(Boolean(backdrop), '底纹已挂载到 body')
+if (backdrop) {
+  check(backdrop.className.includes('ly-backdrop'), '底纹类名正确', backdrop.className)
+  check(backdrop.attributes['aria-hidden'] === 'true', '底纹对无障碍隐藏')
+  const svg = backdrop.childNodes.find((c) => c.tagName === 'SVG')
+  check(Boolean(svg), '底纹内含 SVG')
+  if (svg) {
+    check(svg.attributes.viewBox === '0 0 1000 1000', 'SVG viewBox 正确', String(svg.attributes.viewBox))
+    check(String(svg.style.opacity) === '0.055', 'SVG 透明度已设为低值（不遮字）', String(svg.style.opacity))
+    // 统计图形：4 个参考圆 + 64 卦名 + 8 卦组 + 太极 4 件 + 题字
+    let circles = 0, texts = 0, paths = 0, rects = 0, groups = 0
+    const count = (n) => {
+      if (n.tagName === 'CIRCLE') circles += 1
+      if (n.tagName === 'TEXT') texts += 1
+      if (n.tagName === 'PATH') paths += 1
+      if (n.tagName === 'RECT') rects += 1
+      if (n.tagName === 'G') groups += 1
+      for (const c of n.childNodes ?? []) count(c)
+    }
+    count(svg)
+    check(texts >= 64, '含六十四卦名环', `text ${texts} 个`)
+    check(groups === 8, '含八卦八组', `g ${groups} 个`)
+    check(paths >= 1, '含太极图形')
+    check(rects >= 24, '含八卦爻线', `rect ${rects} 个`)
+    check(circles >= 4, '含参考圆', `circle ${circles} 个`)
+    // 八卦名与方位都应出现
+    const svgText = (() => { const o = []; const w = (n) => { if (n.tagName === 'TEXT') o.push(n._text); for (const c of n.childNodes ?? []) w(c) }; w(svg); return o.join(' ') })()
+    for (const n of ['乾', '坤', '坎', '离', '震', '巽', '艮', '兑']) {
+      check(svgText.includes(n), `八卦含「${n}」`)
+    }
+    check(svgText.includes('先天八卦'), '含题字「先天八卦」')
+  }
+}
+
+// ---------- 4) 关于面板 ----------
+console.log('--- 关于面板 ---')
+const aboutBtn = findBtn(rootEl, '关于')
+check(Boolean(aboutBtn), '页头有「关于」按钮')
+if (aboutBtn) {
+  aboutBtn.listeners.click?.[0]?.()
+  const after = collect()
+  check(after.includes('咨询与赞助'), '展开后含「咨询与赞助」')
+  check(after.includes('Ljx_0609300'), '显示咨询微信号')
+  check(after.includes('复制'), '有复制按钮')
+  check(after.includes('数据透明'), '含数据透明说明')
+  check(after.includes('免责与边界'), '含免责说明')
+  check(after.includes('不承诺任何预测准确率'), '免责含不承诺准确率')
+  check(after.includes('仅供文化参考与娱乐'), '免责含仅供娱乐')
+  check(after.includes('不上传任何数据'), '透明说明含不上传数据')
+  check(after.includes('历法自检锚点'), '含历法自检锚点')
+  check(after.includes('1949-10-01'), '含锚点日期')
+  check(after.includes('甲子日'), '含锚点干支')
+  const closeBtn = findBtn(rootEl, '收起')
+  check(Boolean(closeBtn), '有收起按钮')
+  if (closeBtn) {
+    closeBtn.listeners.click?.[0]?.()
+    check(!collect().includes('咨询与赞助'), '收起后内容消失')
+  }
 }
 
 console.log(fail === 0 ? '\n全部通过' : `\n失败 ${fail} 项`)
