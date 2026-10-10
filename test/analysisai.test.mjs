@@ -178,8 +178,10 @@ check(captured.streamArgs && captured.streamArgs.reasoningEffort === 'low',
   '默认以 reasoningEffort=low 派发（轻度思考）', String(captured.streamArgs?.reasoningEffort))
 check(captured.streamArgs && captured.streamArgs.maxTokens === RESOLVED_CONFIG.maxTokens,
   'stream 入参保留了 maxTokens（未配置上限时沿用解析值）', String(captured.streamArgs?.maxTokens))
-check(captured.streamArgs && captured.streamArgs.temperature === RESOLVED_CONFIG.temperature,
-  'stream 入参保留了 temperature', String(captured.streamArgs?.temperature))
+// temperature 由插件按 analysisTemperature 决策：默认 0.2，确保同一卦同一问可复现。
+// （适配器允许 0–0.5；不设则走默认，实测同一卦两次解读会不同。）
+check(captured.streamArgs && captured.streamArgs.temperature === 0.2,
+  '默认以 temperature=0.2 派发（压低随机性，断卦可复现）', String(captured.streamArgs?.temperature))
 check(captured.streamArgs && captured.streamArgs.provider === RESOLVED_CONFIG.provider
   && captured.streamArgs.model === RESOLVED_CONFIG.model,
   'stream 入参保留了 provider 与 model')
@@ -226,6 +228,20 @@ check(clientSrc.includes('AiAnalysisView'), '客户端有 AI 断卦视图')
 check(clientSrc.includes('断卦方式'), '客户端有断卦方式切换')
 check(clientSrc.includes('规则断卦'), '客户端保留规则断卦入口')
 check(/boardCache\.aiMode = v\.config\.analysisMode !== "rule"/.test(clientSrc), '默认随配置走 AI（并写入状态缓存）')
+
+console.log('--- 不许迎合：结构性防护 ---')
+// 「重新生成」按钮 = 允许把同一卦重算到满意为止，与「不许迎合」直接相违，故不得存在。
+// 这里检查可执行的代码里没有该按钮（注释里提到它是允许的）。
+const clientCodeOnly = clientSrc.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
+check(!clientCodeOnly.includes('重新生成'), '界面不再提供「重新生成」（防止摇到满意为止）')
+// runAiAnalysis 只该有两个合法调用点：① 起卦排盘之后 ② 从「规则断卦」切回「AI 断卦」而尚无内容时
+const aiCallSites = (clientCodeOnly.match(/runAiAnalysis\(/g) ?? []).length
+check(aiCallSites === 3, 'runAiAnalysis 调用点数量符合预期（1 处定义 + 2 处合法触发）', `实际 ${aiCallSites} 处`)
+check(clientCodeOnly.includes('if (!aiText && !aiStreaming) runAiAnalysis'),
+  '切回 AI 断卦时仅在尚无内容时补算（不会覆盖已有结果）')
+const hostCodeOnly = readFileSync(join(root, 'lib', 'index.js'), 'utf8').replace(/\/\/[^\n]*/g, '')
+check(/temperature:\s*clampTemperature/.test(hostCodeOnly), '断卦调用显式设置温度（不依赖适配器默认）')
+check(/function clampTemperature/.test(hostCodeOnly), '温度有夹紧处理（适配器只接受 0–0.5）')
 
 console.log(fail === 0 ? '\n全部通过' : `\n失败 ${fail} 项`)
 process.exit(fail === 0 ? 0 : 1)

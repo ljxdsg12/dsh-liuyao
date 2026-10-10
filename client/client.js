@@ -1234,12 +1234,9 @@ window.__ModuleLoader__.load({
 									className: "ly-btn" + (aiMode ? " ghost" : ""),
 									onClick: function () { stopAi(); boardCache.aiMode = false; setAiMode(false) },
 								}, "规则断卦"),
-								aiMode && !aiStreaming && aiText
-									? h("button", {
-										className: "ly-btn ghost",
-										onClick: function () { runAiAnalysis({ time: time, yao: values, topic: topic }) },
-									}, "重新生成")
-									: null,
+								// 有意不提供「重新生成」：断卦须可复现——同一卦同一问应得同一断。
+								// 允许重生成等于允许「重算到满意为止」，与「不许迎合」直接相违。
+								// 要重来请重新起卦：那是新的占问，不是把同一卦刷到顺眼。
 							),
 							aiMode
 								? h("div", null,
