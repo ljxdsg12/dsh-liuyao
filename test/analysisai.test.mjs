@@ -172,12 +172,17 @@ function session_count(s) { return (s.match(/^· /gm) ?? []).length }
 
 console.log('--- 派发契约（回归防护）---')
 check(captured.streamArgs !== null, 'stream 被调用并记录了入参')
-check(captured.streamArgs && captured.streamArgs.reasoningEffort === RESOLVED_CONFIG.reasoningEffort,
-  'stream 入参保留了 DSH 解析出的 reasoningEffort（漏传即 INVALID_PREPARED_CALL）', String(captured.streamArgs?.reasoningEffort))
+// reasoningEffort 由插件按 analysisReasoning 决策：默认 off（关闭思考以缩短首字延迟）。
+// 关键仍是「必须把最终值传回 stream」，否则 DSH 抛 INVALID_PREPARED_CALL。
+check(captured.streamArgs && captured.streamArgs.reasoningEffort === 'off',
+  '默认以 reasoningEffort=off 派发（关闭思考，首字最快）', String(captured.streamArgs?.reasoningEffort))
 check(captured.streamArgs && captured.streamArgs.maxTokens === RESOLVED_CONFIG.maxTokens,
-  'stream 入参保留了 maxTokens', String(captured.streamArgs?.maxTokens))
+  'stream 入参保留了 maxTokens（未配置上限时沿用解析值）', String(captured.streamArgs?.maxTokens))
 check(captured.streamArgs && captured.streamArgs.temperature === RESOLVED_CONFIG.temperature,
   'stream 入参保留了 temperature', String(captured.streamArgs?.temperature))
+check(captured.streamArgs && captured.streamArgs.provider === RESOLVED_CONFIG.provider
+  && captured.streamArgs.model === RESOLVED_CONFIG.model,
+  'stream 入参保留了 provider 与 model')
 check(captured.streamArgs && typeof captured.streamArgs.system === 'string' && captured.streamArgs.system.length > 0,
   'stream 入参带 system')
 check(captured.streamArgs && Array.isArray(captured.streamArgs.messages), 'stream 入参带 messages')

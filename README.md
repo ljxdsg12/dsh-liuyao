@@ -49,20 +49,25 @@ DeepSeek Harness 的六爻插件：**先天八卦图为盘，火珠林纳甲为�
     followUpProvider: ""    # 断卦与追问所用模型；留空用当前默认模型
     followUpModel: ""
     analysisDepth: full     # AI 断卦详细度：full 完整七段｜brief 精简五段、600 字内（明显更快）
-    analysisReasoning: default  # 思考强度：default 跟随模型默认｜off 关思考（最快）｜low｜medium｜high
+    analysisReasoning: "off"    # 思考强度：off 关闭思考（默认）｜low｜high｜max｜default 跟随模型选择
     analysisMaxTokens: 0    # AI 断卦输出上限；0 不限。设 1200 左右可强制简短
 ```
 
-> **觉得 AI 断卦慢？** 按影响从大到小调这三个旋钮：
+> **AI 断卦的速度**：默认 `analysisReasoning: "off"`（关闭思考）。
 >
-> | 旋钮 | 怎么改 | 效果 |
-> |---|---|---|
-> | `analysisReasoning: off` | DeepSeek V4 默认**开启思考模式**，会先生成一大段不可见推理才开始输出 | **首字延迟降幅最大** |
-> | `analysisDepth: brief` | 提示词少 30%、输出从七段压到五段、600 字内 | 总时长明显下降 |
-> | `analysisMaxTokens: 1200` | 给输出加上限，防止越写越长 | 总时长可控 |
+> 实测数据（`deepseek-flash`，思考强度 `max`，完整模式）：
+>
+> ```
+> 首字 134.7s　共 139.9s　输出 1849 字
+> ```
+>
+> 也就是说 **96% 的时间花在不可见的思考上**，真正输出只用了约 5 秒。断卦是「依规则推演 + 组织语言」，
+> 不像数学或代码那样需要长链思考，所以默认关掉思考——首字延迟从分钟级降到秒级。
+>
+> 想提高质量可改 `analysisReasoning: "low"` 或 `"high"`（DeepSeek 适配器只认 `off`/`low`/`high`/`max`，
+> 没有 `medium`）。另有 `analysisDepth: brief`（少 30% 提示词、输出 600 字内）与 `analysisMaxTokens` 两个旋钮。
 >
 > 面板上会显示每次的**首字延迟 / 总时长 / 输出字数 / 当前设置**，据此判断该调哪个。
-> 另可用 `followUpProvider` + `followUpModel` 指定更快的模型（如 `deepseek-flash`）。
 
 > **断卦由谁做**：排盘（干支、纳甲、六亲、六神、世应、旬空、旺衰、长生、伏神、纳音）始终由内置规则引擎算出，
 > 作为**不可篡改的事实**写进提示词；模型只负责依典籍推理与表达，并被硬性约束「不得改动盘面、无据不作推断」。
