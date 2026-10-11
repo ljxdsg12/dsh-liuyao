@@ -254,27 +254,35 @@ const askBody = (question, extra = {}) => JSON.stringify({
   ...extra,
 })
 
-const refused = await callStream('/dsh-liuyao/ask', askBody('帮我写一段 Python 代码'))
-check(refused.status === 200, '流式端点返回 200', String(refused.status))
-check(/ndjson/.test(String(refused.headers?.['content-type'])), '内容类型为 NDJSON', String(refused.headers?.['content-type']))
-check(refused.events.some(e => e.type === 'refused'), '越界提问被拒', JSON.stringify(refused.events.slice(0, 2)))
-check(refused.events.some(e => e.type === 'refused' && e.text.includes('一卦一断')), '拒答文本带一卦一断')
-check(modelCalls.length === 0, '越界提问不消耗模型调用', String(modelCalls.length))
+// 全 AI 判定：语义性的"该不该答"交给模型，宿主只拦与语义无关的情形。
+// 所以越界提问应当被**送到模型**，由模型以【一卦一断】标记开头拒答，而不是宿主直接拦下。
+const offTopic = await callStream('/dsh-liuyao/ask', askBody('帮我写一段 Python 代码'))
+check(offTopic.status === 200, '流式端点返回 200', String(offTopic.status))
+check(/ndjson/.test(String(offTopic.headers?.['content-type'])), '内容类型为 NDJSON', String(offTopic.headers?.['content-type']))
+check(modelCalls.length === 1, '越界提问也交给模型判断（宿主不再做关键词拦截）', String(modelCalls.length))
+check(offTopic.events.some(e => e.type === 'delta' || e.type === 'done'), '越界提问仍走流式链路', JSON.stringify(offTopic.events.map(e => e.type)))
 
 const another = await callStream('/dsh-liuyao/ask', askBody('再起一卦问问别的'))
-check(another.events.some(e => e.type === 'refused' && e.kind === 'other-casting'), '另起一卦的请求被拒', JSON.stringify(another.events.map(e => e.kind)))
+check(modelCalls.length === 2, '「另起一卦」同样交给模型判断', String(modelCalls.length))
+check(another.events.some(e => e.type === 'done'), '仍以 done 收束', JSON.stringify(another.events.map(e => e.type)))
+
+// 与语义无关的机械性拦截仍然保留
+const tooShort = await callStream('/dsh-liuyao/ask', askBody('嗯'))
+check(tooShort.events.some(e => e.type === 'refused' && e.kind === 'too-short'), '过短提问由宿主直接拒答（不消耗模型）', JSON.stringify(tooShort.events.map(e => e.kind)))
+check(modelCalls.length === 2, '过短提问未消耗模型调用', String(modelCalls.length))
 
 const overLimit = await callStream('/dsh-liuyao/ask', askBody('世爻逢空是什么意思？', {
   history: [0, 1, 2].flatMap(i => [{ role: 'user', text: '问' + i }, { role: 'assistant', text: '答' + i }]),
 }))
 check(overLimit.events.some(e => e.type === 'refused' && e.kind === 'limit'), '达到追问上限后拒答', JSON.stringify(overLimit.events.map(e => e.kind)))
+check(modelCalls.length === 2, '超限未消耗模型调用', String(modelCalls.length))
 
 const streamed = await callStream('/dsh-liuyao/ask', askBody('三爻妻财动而化回头克，钱是不是留不住？'))
 check(streamed.events.filter(e => e.type === 'delta').length === 2, '合法提问按增量推送', JSON.stringify(streamed.events.map(e => e.type)))
 check(streamed.events.some(e => e.type === 'done'), '以 done 事件收束')
 const doneText = streamed.events.find(e => e.type === 'done')?.text ?? ''
 check(doneText === '三爻妻财动而化回头克，钱难留。', 'done 文本为全部增量拼接', doneText)
-check(modelCalls.length === 1, '恰好调用一次模型', String(modelCalls.length))
+check(modelCalls.length === 3, '恰好调用一次模型', String(modelCalls.length))
 check(modelCalls[0].system.includes('同一个问题域') && modelCalls[0].system.includes('山火贲'), '系统提示词含同域作答要求与卦象')
 check(modelCalls[0].system.includes('三爻') && modelCalls[0].system.includes('回头克'), '提示词含具体爻象')
 check(modelCalls[0].messages.length === 1 && modelCalls[0].messages[0].role === 'user', '消息只含本次提问', JSON.stringify(modelCalls[0].messages.map(m => m.role)))
@@ -283,8 +291,8 @@ check(modelCalls[0].provider === 'deepseek-official' && modelCalls[0].model === 
 const withHistory = await callStream('/dsh-liuyao/ask', askBody('那应期呢？', {
   history: [{ role: 'user', text: '前问' }, { role: 'assistant', text: '前答' }],
 }))
-check(modelCalls.length === 2, '带历史时再次调用模型', String(modelCalls.length))
-check(modelCalls[1].messages.length === 3, '历史一并送入', JSON.stringify(modelCalls[1].messages.map(m => m.role)))
+check(modelCalls.length === 4, '带历史时再次调用模型', String(modelCalls.length))
+check(modelCalls[3].messages.length === 3, '历史一并送入', JSON.stringify(modelCalls[3].messages.map(m => m.role)))
 
 const badAsk = await callStream('/dsh-liuyao/ask', JSON.stringify({ time: '2026-10-10 12:00', yao: [1, 2, 3, 4, 5, 6], question: '世爻如何？' }))
 check(badAsk.status === 400, '非法爻值返回 400', String(badAsk.status))

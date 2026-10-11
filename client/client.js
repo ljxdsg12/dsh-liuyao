@@ -669,7 +669,13 @@ window.__ModuleLoader__.load({
 					if (evt.type === "refused") { settleLast({ text: evt.text || "【一卦一断】此问不在本卦范围。", refused: true }); return }
 					if (evt.type === "notice") { setNotice(evt.text || ""); return }
 					if (evt.type === "error") { settleLast({ text: evt.text || "追问失败。", failed: true }); return }
-					if (evt.type === "done") { settleLast({ text: evt.text || "" }); return }
+					if (evt.type === "done") {
+						// 拒答改由模型决定：它以固定标记开头表示此题不在本卦范围。
+						// 收到 done 时按标记补上 refused 样式（流式期间无法预知，故在收尾判定）。
+						var finalText = evt.text || "";
+						settleLast({ text: finalText, refused: finalText.indexOf("【一卦一断】") === 0 });
+						return;
+					}
 				}).catch(function (error) {
 					settleLast({ text: "追问请求失败：" + String(error && error.message ? error.message : error), failed: true });
 				}).then(function () {
