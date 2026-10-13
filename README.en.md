@@ -47,13 +47,19 @@ dsh plugin --profile web add ./dsh-liuyao-0.2.0.tgz
 Either way the installer registers the bundle in your profile automatically. **Restart DSH**, then
 refresh the GUI — a **六爻** panel and sidebar icon appear.
 
-> **Do not** install the release tarball directly by URL
-> (`dsh plugin add "https://github.com/…/dsh-liuyao-0.2.0.tgz"`). DSH's installer currently writes a
-> lockfile entry without an `integrity` field for remote tarballs, and pnpm then refuses with
-> `ERR_PNPM_MISSING_TARBALL_INTEGRITY`. This is an installer/pnpm issue, not a packaging problem —
-> the same tarball installs fine from a local path. See [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md).
+> You **can** install straight from the release URL, as long as you **pin the tag**:
+> `dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.2.0/dsh-liuyao-0.2.0.tgz"`
+> — measured at `Done in 5.3s`, three consecutive installs, lockfile entry carries a full `integrity`.
+> Pinning matters because `latest/download/` resolves `latest` at request time while taking the file
+> name literally, so a versioned asset name 404s as soon as you ship the next release.
 >
-> Use a **branch or tag** reference (`#v0.1.0`, `#main`), never a commit SHA: pnpm resolves git refs
+> An earlier revision of this README told you **not** to use the direct URL because of an
+> `ERR_PNPM_MISSING_TARBALL_INTEGRITY` error. That conclusion was wrong. The likely cause was that the
+> asset at the same URL had been deleted and re-uploaded (new content, same URL), leaving pnpm's
+> cached remote metadata out of step with the actual asset; pinning tags means a new URL per release,
+> so the hazard is gone. The investigation is in [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md).
+>
+> Use a **branch or tag** reference (`#v0.2.0`, `#main`), never a commit SHA: pnpm resolves git refs
 > with `git ls-remote`, which only advertises branches and tags.
 
 ## Configuration

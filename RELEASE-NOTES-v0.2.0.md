@@ -23,9 +23,9 @@ dsh plugin --profile web add ./dsh-liuyao-0.2.0.tgz
 装完**重启 DSH**，再刷新界面，会出现「六爻」主面板与侧栏图标。**插件只在你装的那个 profile
 被启动时才加载**——装到别的 profile 上，界面不会出现任何变化。
 
-> ⚠️ 请勿用本页附件的直链安装：DSH 安装器目前对远程 tarball 写出的 lockfile 条目缺 `integrity`
-> 字段，pnpm 会以 `ERR_PNPM_MISSING_TARBALL_INTEGRITY` 拒绝。这是安装器 / pnpm 的问题，
-> 不是包本身的问题——同一个文件走本地路径即可安装。
+> ✅ 本页附件的直链**可以**直接装（钉住 tag 的写法）：
+> `dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.2.0/dsh-liuyao-0.2.0.tgz"`
+> 实测 `Done in 5.3s`。**关键是钉住 tag**——`latest/download/` 会随下一版 404。
 
 包里还带了一个**纯静态网站版**（`web/`，另见 `web/DEPLOY.md`）：排盘在访客浏览器里完成，
 没有后端、没有数据库，起卦记录刷新即消失。网站版**不含** AI 断卦与追问——纯静态页面无法

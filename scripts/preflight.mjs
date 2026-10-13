@@ -73,17 +73,83 @@ for (const k of ['name', 'owner', 'url', 'description', 'category', 'install']) 
 ok(entry.description.en && entry.description.zh, '中英双语描述')
 ok(Array.isArray(entry.capabilities) && entry.capabilities.length === 0, 'capabilities 为空（无红线）')
 ok(entry.install.includes('github:ljxdsg12/dsh-liuyao#v' + pkg.version), 'install 使用已验证的 git 规格', entry.install)
-ok(!entry.install.includes('releases/download'), 'install 不使用失效的 tarball 直链')
+// 早先这里断言「install 不得出现 releases/download」，理由是直链安装会报
+// ERR_PNPM_MISSING_TARBALL_INTEGRITY。该结论已被实测推翻（钉住 tag 的直链连装三次成功），
+// 所以改成：若用了直链，就必须钉住与当前版本一致的 tag——这才是真正会坏的地方。
+if (entry.install.includes('releases/download')) {
+  const tag = /releases\/download\/([^/]+)\//.exec(entry.install)?.[1]
+  ok(tag === `v${pkg.version}`, 'install 的直链钉住了当前版本的 tag', `tag=${tag}`)
+}
 ok(entry.screenshots.length === 4, 'screenshots 4 张', String(entry.screenshots.length))
 ok(entry.screenshots.every(u => u.includes('/v' + pkg.version + '/assets/')), 'screenshots 指向标签快照（跟随标签前移）')
 
-console.log('— 面向用户的安装命令不得使用失效直链 —')
+console.log('— 面向用户的安装命令里的 Release 链接 —')
+// 历史上这里连着写错过两次，故改成正面断言，而不是只挡某一种写法：
+//   1. 曾经写「不要用本页附件的直链安装」——后来实测直链其实可用，那是错的；
+//   2. 官方文档警告 latest/download/ 会「提交当天有效、发下一版就 404」，
+//      所以任何 Release 链接都必须钉住 tag，且 tag 必须等于当前版本号。
 for (const file of ['README.md', 'README.en.md', 'RELEASE-NOTES-v0.2.0.md', 'NEXT-STEPS.md']) {
   const text = read(file)
-  const usesBroken = /dsh plugin[^\n]*add "https:\/\/github\.com\/ljxdsg12\/dsh-liuyao\/releases\/download/.test(text)
-  ok(!usesBroken, `${file} 未把失效直链写成安装命令`)
+  const urls = [...text.matchAll(/https:\/\/github\.com\/ljxdsg12\/dsh-liuyao\/releases\/download\/[^\s"'`)]+/g)].map(m => m[0])
+  for (const u of new Set(urls)) {
+    const tag = /releases\/download\/([^/]+)\//.exec(u)?.[1]
+    ok(tag !== 'latest', `${file} 的 Release 链接未用 latest（会随版本 404）`, u)
+    ok(tag === `v${pkg.version}`, `${file} 的 Release 链接钉住的 tag 与当前版本一致`, `tag=${tag} version=v${pkg.version}`)
+    const asset = u.split('/').pop()
+    ok(asset.includes(pkg.version), `${file} 的资产名含当前版本号`, asset)
+  }
+  // 反面断言：「直链安装…不可用」这类句子会误伤「直链安装实测：✅ 可用（此前的不可用结论已推翻）」，
+  // 于是改成正面要求——凡是提到这个旧错误的地方，必须同时说明它已被推翻。
+  const mentionsOldError = /ERR_PNPM_MISSING_TARBALL_INTEGRITY/.test(text)
+  if (mentionsOldError) {
+    ok(/推翻|错的|更正|不再|已解决|过时|wrong|superseded|no longer|corrected/i.test(text),
+      `${file} 提到旧的 integrity 报错时，说明了该结论已被推翻`)
+  }
 }
-// 说明性文档里可以出现该 URL（用于解释问题），故不检查 KNOWN-ISSUE / PUBLISHING
+
+console.log('— 打包后包内文件清单（--pack 时执行，最慢但最准）—')
+if (process.argv.includes('--pack')) {
+  // 这一组是补一个真实踩过的洞：package.json 的 files 白名单曾漏掉 web/，
+  // 于是「发布说明写了包里带网站版、而包里其实没有」。只查白名单里有没有
+  // 某个名字是不够的——要拿真实打出来的包跟磁盘上的目录对账。
+  let listing = ''
+  try {
+    const tgz = `dsh-liuyao-${pkg.version}.tgz`
+    // pnpm 不一定在 PATH 里（本机就是），按几个常见位置找一下再退回到裸 pnpm
+    const candidates = [
+      process.env.PNPM_CJS,
+      join(process.env.USERPROFILE ?? '', '.dsh', 'dsh-runtimes', 'dsh-primary-runtime', 'dependencies', 'pnpm', 'bin', 'pnpm.cjs'),
+      join(root, 'node_modules', '.bin', 'pnpm.cjs'),
+    ].filter(Boolean)
+    const pnpmCjs = candidates.find(p => existsSync(p))
+    if (pnpmCjs) execFileSync(process.execPath, [pnpmCjs, 'pack'], { cwd: root, stdio: 'pipe' })
+    else execFileSync('pnpm', ['pack'], { cwd: root, stdio: 'pipe' })
+    listing = execFileSync('tar', ['-tzf', tgz], { cwd: root, encoding: 'utf8' })
+  } catch (error) {
+    ok(false, '能打出 tarball（需要 pnpm 与 tar）', String(error.message).slice(0, 160))
+  }
+  if (listing) {
+    const inPack = new Set(listing.split('\n').map(l => l.trim().replace(/^package\//, '')).filter(Boolean))
+    ok(inPack.size > 0, 'tarball 非空', `${inPack.size} 个条目`)
+    // 凡是白名单里列出的目录，包内都必须真有东西
+    for (const f of pkg.files) {
+      const has = [...inPack].some(p => p === f || p.startsWith(f + '/'))
+      ok(has, `白名单声明的 "${f}" 确实进了包`)
+    }
+    // 反向：磁盘上存在、且明显该发布的顶层目录，不得被白名单漏掉
+    for (const dir of ['web', 'src', 'lib', 'client', 'skills', 'assets']) {
+      if (!existsSync(join(root, dir))) continue
+      const has = [...inPack].some(p => p.startsWith(dir + '/'))
+      ok(has, `磁盘上的 ${dir}/ 进了包（不会被白名单静默漏掉）`)
+    }
+    // 文档里承诺过的东西必须在包里
+    for (const p of ['screenshots.json', 'cordis.patch.yml', 'LICENSE', 'web/index.html', 'lib/index.js', 'client/client.js']) {
+      ok(inPack.has(p), `发布说明承诺的 ${p} 在包内`)
+    }
+  }
+} else {
+  console.log('  （跳过；发布前请用 node scripts/preflight.mjs --pack 跑一次全量）')
+}
 
 console.log(bad === 0 ? '\n全部通过' : `\n失败 ${bad} 项`)
 process.exit(bad === 0 ? 0 : 1)

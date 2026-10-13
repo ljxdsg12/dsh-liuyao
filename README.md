@@ -141,13 +141,18 @@ dsh plugin --profile web add ./dsh-liuyao-0.2.0.tgz
 
 装完 **重启 DSH**，再刷新界面，出现「六爻」主面板与侧栏图标。
 
-> ⚠️ **不要**用 Release 的 tarball 直链安装：
-> `dsh plugin add "https://github.com/…/dsh-liuyao-0.2.0.tgz"` 目前会报
-> `ERR_PNPM_MISSING_TARBALL_INTEGRITY`。这是 DSH 安装器与 pnpm 的问题（远程 tarball 的
-> lockfile 条目缺 `integrity` 字段），不是包本身的问题——同一个 tarball 走本地路径就能装上。
-> 根因与已排除项见 [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md)。
+> ✅ 也可以直接给 Release 直链（**钉住 tag**）：
+> `dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.2.0/dsh-liuyao-0.2.0.tgz"`
+> —— 实测 `Done in 5.3s`，连装三次都成功，lockfile 条目带完整 `integrity`。
+> **但必须钉住 tag**：官方文档警告 `latest/download/` 只解析 `latest`、文件名按字面取，
+> 资产名带版本号就会「发下一版就 404」。
 >
-> git 规格请用**分支或标签**（`#v0.1.0`、`#main`），**不要用 commit 短哈希**：
+> 早期这里写过「直链安装会报 `ERR_PNPM_MISSING_TARBALL_INTEGRITY`，请勿使用」——
+> 那个结论是错的。当时失败的真正原因很可能是同一个 URL 上的资产被删掉重传过
+> （换了内容、URL 没变），pnpm 的远程元数据缓存与实际资产对不上；钉住 tag 后发新版就换 URL，
+> 这个隐患不存在了。过程记录见 [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md)。
+>
+> git 规格请用**分支或标签**（`#v0.2.0`、`#main`），**不要用 commit 短哈希**：
 > pnpm 用 `git ls-remote` 解析引用，它只返回分支与标签。
 
 随后在 profile 的 `cordis.patch.yml` 追加一层：

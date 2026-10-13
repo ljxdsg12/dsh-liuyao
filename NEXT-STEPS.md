@@ -1,44 +1,64 @@
 # 上架进度与剩余事项
 
-**状态：插件已发布并端到端验证，安装问题已定位并给出可用替代方案。**
-只剩「看界面 + 提收录 PR」两件事需要你做。
+**状态（2026-10-13 更新）：收录 PR 已提交，等官方 CI 与评审。**
+只剩「看界面」需要你做。
+
+| 里程碑 | 状态 |
+|---|---|
+| v0.2.0 发布（Release + 资产） | ✅ [Release](https://github.com/LJXDSG12/dsh-liuyao/releases/tag/v0.2.0) |
+| 仓库加 `dsh-plugin` topic | ✅ 已加（另加 `deepseek-harness`/`dsh`/`liuyao`） |
+| 收录 PR | ✅ **[PR #7252](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/7252)** |
+| 等官方 CI 转绿并入 | ⏳ 官方明说 CI 失败可在同分支推修复，不用重开 PR |
 
 ---
 
-## 一、已完成并验证（截至 2026-10-10 19:50）
+## 一、已完成并验证（截至 2026-10-13）
 
 | 项目 | 证据 |
 |---|---|
-| 公开仓库 | <https://github.com/ljxdsg12/dsh-liuyao>（公开、默认分支 main） |
-| 代码 | `main`，**29 个提交**，标签 `v0.1.0`，工作区干净 |
-| Release | <https://github.com/ljxdsg12/dsh-liuyao/releases/tag/v0.2.0>，`prerelease: false`（Latest） |
-| Release 附件 | `dsh-liuyao-0.2.0.tgz`，393,640 字节，SHA256 `1a465595…d6ffc5` |
-| 发布包（最新） | `dsh-liuyao-0.2.0.tgz` / `.tar.gz`，387.3 KB，SHA256 `0df1fe2e…96c0e7`（含「关于」功能） |
+| 公开仓库 | <https://github.com/ljxdsg12/dsh-liuyao>（公开、默认分支 main，HEAD `d74f9cf`） |
+| 代码 | `main`，标签 `v0.2.0` 与 HEAD 一致（已强制前移对齐） |
+| Release | <https://github.com/LJXDSG12/dsh-liuyao/releases/tag/v0.2.0>，id `411325729`，`prerelease: false`（Latest） |
+| Release 附件 | `dsh-liuyao-0.2.0.tgz`，**438,575 字节**，SHA256 `8bc9c30913e344b7a2893e31b64aec290e65c91421d3d070f2d07bf3293f94be`，41 个条目 |
+| 资产一致性 | 公网下载回来的 SHA256 **与本地逐字节一致**（已实测） |
 | 本地安装实测 | `dsh plugin add <tarball>` → **323ms**，免 git、免联网、免代理 |
 | 联网安装实测 | `dsh plugin add "github:ljxdsg12/dsh-liuyao#v0.2.0"` → **4s**（需 git + 代理） |
-| 装后可用性 | 工具 3 个、端点 **8** 条；`山火贲 → 地雷复`、8 个分析章节、含通俗总结与断卦依据 |
-| 功能 | 起卦（手工／电脑摇卦）、排盘、断卦（逐条注明出处）、通俗总结、一卦一断、**关于（含咨询微信号）** |
-| 自检 | `npm test` → **8/8 套件通过**；`scripts/preflight.mjs` → 全部通过 |
+| **Release 直链安装实测** | ✅ **`Done in 5.3s`**，连装三次 exit 0，lockfile 条目带完整 `integrity`（**此前的「不可用」结论已推翻，见下**） |
+| 装后可用性 | 工具 3 个、端点 8 条；`山火贲 → 地雷复`、含通俗总结与断卦依据 |
+| 功能 | 起卦（手工／电脑摇卦）、排盘、**AI 断卦（逐条注明出处，可切规则断卦）**、通俗总结、**一卦一断（全 AI 判定）**、关于（含咨询微信号）、**静态网站版** |
+| 自检 | `npm test` → **11/11 套件通过**；`scripts/preflight.mjs` → 全部通过 |
 | 许可 | `LICENSE`（MIT + 四条免责附加说明），GitHub 识别为 `Other`（自定义许可） |
-| 截图 | `assets/screenshot-1..4.png`，已进 README 与目录条目 |
+| 截图 | `assets/screenshot-1..4.png` + `screenshots.json`（官方新约定），已进 README 与目录条目 |
 
-### 可用的安装方式（实测结论）
+### 可用的安装方式（实测结论，2026-10-13 复核）
 
 ```powershell
-# ✅ 推荐：本地 tarball（免 git、免联网、免代理）
+# ✅ 推荐：Release 直链（钉住 tag；免 git，需联网/代理）
+dsh plugin --profile web add "https://github.com/LJXDSG12/dsh-liuyao/releases/download/v0.2.0/dsh-liuyao-0.2.0.tgz"
+
+# ✅ 本地 tarball（免 git、免联网、免代理）
 dsh plugin --profile web add "$env:USERPROFILE\Desktop\dsh-liuyao-0.2.0.tar.gz"
 
-# ✅ 联网方式（需要机器上有 git，且需代理）
+# ✅ git 方式（需要机器上有 git，且需代理）
 dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.2.0"
 ```
 
 | 方式 | 需 git | 需联网 | 实测 |
 |---|---|---|---|
 | 本地 `.tgz` / `.tar.gz` | ❌ | ❌ | ✅ 323ms |
-| `github:…#v0.1.0` | ✅ | ✅ | ✅ 4s |
-| Release 附件**直链** | ❌ | ✅ | ❌ `ERR_PNPM_MISSING_TARBALL_INTEGRITY` |
+| `github:…#v0.2.0` | ✅ | ✅ | ✅ 4s |
+| Release 附件**直链** | ❌ | ✅ | ✅ **5.3s**（见下方更正） |
 
-### 两个易踩的坑
+> ⚠️ **更正一条此前写错的结论。** 这里原先写「Release 直链不可用，报
+> `ERR_PNPM_MISSING_TARBALL_INTEGRITY`」——**现在实测可用，连装三次都成功**。
+> 当初失败的真正原因很可能是：**同一个 URL 上的资产被删掉重传过**（换了内容、URL 没变），
+> pnpm 对远程 tarball 的元数据缓存与实际资产对不上。**钉住 tag 之后这个隐患消失**——
+> 发新版就换 URL，不会再撞缓存。`KNOWN-ISSUE-install.md` 保留作过程记录，
+> 但结论以本文件为准。
+>
+> 另：`pnpm-workspace.yaml` 里的 `minimumReleaseAge: 1440` 配了
+> `minimumReleaseAgeIgnoreMissingTime: true`，正是它让「没有发布时间元数据的 GitHub tarball」
+> 能通过供应链策略。
 
 1. **`dsh` 命令默认不在 PATH 里**（DSH 桌面版如此）。真实入口是
    `<安装目录>\resources\runtime\cli\bin\dsh.cmd`。给用户发东西时必须写清这一点。
@@ -47,6 +67,17 @@ dsh plugin --profile web add "github:ljxdsg12/dsh-liuyao#v0.2.0"
    `ERR_PNPM_NOT_PACKAGE_DIRECTORY`）。
 
 > 直链失败的根因、已排除项与对照实验见 [KNOWN-ISSUE-install.md](KNOWN-ISSUE-install.md)。
+
+### 两个易踩的坑
+
+1. **`dsh` 命令默认不在 PATH 里**（DSH 桌面版如此）。真实入口是
+   `<安装目录>\resources\runtime\cli\bin\dsh.cmd`。给用户发东西时必须写清这一点。
+2. **扩展名有讲究**：`.tgz` 与 `.tar.gz` 都能装；`.tgz` 在 Windows 里常被当成未知类型而隐藏，
+   所以对外发送建议用 `.tar.gz`。**不要改成 `.zip`**（pnpm 按扩展名判断，会报
+   `ERR_PNPM_NOT_PACKAGE_DIRECTORY`）。
+3. **插件只装到它被启动的那个 profile 时才生效**。装到别的 profile，界面毫无变化
+   ——这条真实坑过一次（安装器曾固定用 `--profile web`，而实际在用的是 `desktop`）。
+   安装器现已自动识别 profile。
 
 ## 二、⚠️ 受限网络下的代理前提
 
@@ -76,36 +107,41 @@ $env:NODE_USE_ENV_PROXY='1'
 - 「关于」面板在窄窗口下的排版、微信号复制按钮
 - 深色模式对比度
 - 「一卦一断」对话框的排版与拒答样式
+- **AI 断卦**：耗时是否可接受（可调 `analysisReasoning` / `analysisDepth`）
+- **同一卦连续两次 AI 断卦，解读应基本一致**（温度已默认 0.2；要完全一致可设 0）
 
 ### 2. 给朋友试用
 
-发 `dsh-liuyao-0.2.0.tar.gz`（约 387 KB），并附 [SHARE.md](SHARE.md)。
+发 `dsh-liuyao-0.2.0.tgz`（约 428 KB），并附 [SHARE.md](SHARE.md)。
+或直接把 Release 链接给他：
+<https://github.com/LJXDSG12/dsh-liuyao/releases/tag/v0.2.0>
 
-### 3. 提收录 PR
+### 3. 收录 PR —— ✅ 已提交
 
-**时机：2026-10-11 14:32（北京时间）之后。** 仓库创建于 2026-10-10 14:32，
-gate 要求**仓库年龄 ≥ 1 天**；commit 门槛（≥ 10）已有 29 个。
-
-把 [catalog-entry.json](catalog-entry.json) 作为一条新条目加进
-[awesome-dsh-plugin/awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin)
-的 `plugins.json`，提 Pull Request。
+**[PR #7252](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/7252)**，
+fork `ljxdsg12/awesome-dsh-plugin` 分支 `add-liuyao-plugin`，单提交 `3e6d840`，
+相对上游 `ca053d9` 仅「1 个文件 +7 行」，符合官方「一个 PR 只加一个文件」。
 
 | gate 门槛 | 状态 |
 |---|---|
 | 声明 `dsh.bundle` | ✅ |
-| 仓库年龄 ≥ 1 天 | ⏳ 2026-10-11 14:32 之后 |
-| commit 数 ≥ 10 | ✅ 29 个 |
+| 仓库年龄 ≥ 1 天 | ✅（建库 2026-10-10T06:32:05Z，已 3 天多） |
+| 仓库加 `dsh-plugin` topic | ✅ |
+| `tarball` 指向 GitHub Release 资产 | ✅ 实测 HTTP 200、SHA256 与本地一致 |
 
-年龄不足时 PR 会显示 `repository is X.X days old (needs 1) — resubmit in about 15h`——
-这是**有意设计**（防刷收录），到点后官方 `regate.yml` 每 6 小时自动重跑转绿。
+CI 若报错，**在同一分支推修复即可，不用重开 PR**。用 `node scripts/check-pr-status.mjs` 查状态。
 
-## 四、发布包与仓库的已知不一致
+## 四、发布包与仓库的一致性 —— ✅ 已解决
 
-- **Release 附件**是 15:15 上传的（393,640 字节），**不含「关于」功能**
-- **仓库代码**已含「关于」功能，最新打包为 387.3 KB（`0df1fe2e…`）
+原先：Release 附件与仓库代码不是同一份（附件缺「关于」功能，后来又缺网站版）。
+现在：附件由当前 HEAD（`d74f9cf`）重新打包，**公网下载回来的 SHA256 与本地逐字节一致**。
 
-要一致，需要把 Release 附件换成最新包。**改由 npm 发布是更彻底的解法**：之后用户
-`dsh plugin add dsh-liuyao` 即可，免 git、免 tarball、免扩展名问题。
+还剩一个**已知的文档漂移风险**（不是错误，是提醒）：
+`package.json` 的 `files` 白名单必须覆盖所有要进包的目录。这次就漏了 `web/`，
+导致「发布说明写了包里带网站版、而包里其实没有」。以后往包里加目录，记得同步改白名单。
+
+**npm 发布仍是一个可选改进**：之后用户 `dsh plugin add dsh-liuyao` 即可，
+免 git、免 tarball、免扩展名问题，市场还能显示下载量。收录与否不受影响。
 
 ## 五、之后：变现放在服务侧
 
