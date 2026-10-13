@@ -1,0 +1,27 @@
+chore(market): 按官方 contributing.md 全文重核，补校验脚本与说明
+
+先前那份说明只对着官方文档的「要求」表格写，这次拿到了 contributing.md
+全文，发现漏了几条，一并补上。
+
+一、scripts/check-market-requirements.mjs（新增）
+   把官方「Requirements」与「What CI checks」两节拆成 16 条机器可查的断言，
+   逐条核对本仓库：entry count / dsh.bundle + patch 文件存在且含 insert 段 /
+   官方 @deepseek-ai/* 是否误放 dependencies / 仓库年龄 ≥1 天 / 仓库公开 /
+   截图张数 1-8、相对路径不跳出目录、文件真实存在、绝对 URL 限 GitHub 托管、
+   路径已进 files 白名单 / 有真实代码 / 非纯聚合包 / 能从源码安装。
+   16 项全过。
+
+二、submit/如何提交到官方插件市场.md
+   - 「要求」段按官方原文补齐（活跃维护、描述须可被代码验证、一个 PR 最多 3 条）。
+   - 新增第七节，记下官方特意写长的两个坑：
+     ① 只声明 dsh.client 不可安装——多数被拒投稿栽在这里（本插件有 dsh.bundle，不适用）；
+     ② peerDependencies 的范围若无显式预发布分支，会静默排除 0.1.0-* 这类
+        预发布 harness（node-semver 的元组规则），本机 0.2.0-rc.2 正属此类。
+   - 修正一处判断：tarball 字段并非硬性必需。KNOW-ISSUE-install.md 已实测
+     git 规格（github:ljxdsg12/dsh-liuyao#v0.2.0）可用，故仓库「能从源码安装」，
+     tarball 只是官方推荐的更优体验，不是门槛。先前脚本把它标成必需，已改。
+
+三、核对中同时确认的外部事实
+   - 仓库 topics 为空 → dsh-plugin 这个硬性要求仍未满足（需在网页上点）。
+   - v0.2.0 的 Release 不存在，v0.2.0 直链实测 404；远端 v0.2.0 标签停在
+     fb7eab7，比本地 tag 落后 4 个提交。
