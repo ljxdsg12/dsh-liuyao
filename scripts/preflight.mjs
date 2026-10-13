@@ -11,12 +11,25 @@ const ok = (cond, label, extra = '') => {
   if (cond) console.log(`  ✓ ${label}`)
   else { bad += 1; console.log(`  ✗ ${label}${extra ? ' :: ' + extra : ''}`) }
 }
+const pkg = JSON.parse(read('package.json'))
 
 console.log('— README / 目录条目引用的截图 —')
-for (const file of ['README.md', 'README.en.md', 'catalog-entry.json']) {
+for (const file of ['README.md', 'README.en.md', 'catalog-entry.json', 'screenshots.json']) {
   const text = read(file)
   const refs = [...text.matchAll(/assets\/screenshot-\d+\.png/g)].map(m => m[0])
   for (const ref of new Set(refs)) ok(existsSync(join(root, ref)), `${file} → ${ref}`)
+}
+
+console.log('— screenshots.json（收录指南指定的市场截图声明）—')
+{
+  const raw = JSON.parse(read('screenshots.json'))
+  const list = Array.isArray(raw) ? raw : raw.screenshots
+  ok(Array.isArray(list), 'screenshots.json 是数组或 {"screenshots": [...]}')
+  ok(list.length >= 1 && list.length <= 8, '张数在 1–8 之间', String(list?.length))
+  ok(list.every(p => !p.startsWith('/') && !p.includes('..')), '相对路径不跳出插件目录')
+  ok(list.every(p => !/^https?:/.test(p)), '未使用绝对 URL（改图只需推自己的仓库）')
+  for (const p of list) ok(existsSync(join(root, p)), `screenshots.json → ${p}`)
+  ok(pkg.files.includes('screenshots.json'), 'files 白名单含 screenshots.json')
 }
 
 console.log('— assets 目录 —')
@@ -35,7 +48,6 @@ for (const n of [1, 2, 3, 4]) {
 }
 
 console.log('— 包元数据 —')
-const pkg = JSON.parse(read('package.json'))
 ok(pkg.name === 'dsh-liuyao', 'name')
 ok(/^\d+\.\d+\.\d+$/.test(pkg.version), 'version 为语义化版本', pkg.version)
 ok(pkg.private === undefined, '未声明 private（可发布）')
