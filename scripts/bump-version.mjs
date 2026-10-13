@@ -77,4 +77,23 @@ for (const f of ['README.md', 'README.en.md', 'NEXT-STEPS.md', 'PUBLISHING.md', 
   }
 }
 
+// 6) 提交给官方市场的条目文件。这里只是本地留档——**真正生效的那一份是 PR 分支上的**，
+//    所以改版后除了改这里，还要把它推到 awesome-dsh-plugin 的 PR 分支。
+//    忘了这一步的后果很具体：市场展示的 tarball 直链会指向上一版的标签。
+{
+  const p = 'submit/data/plugins/LJXDSG12__dsh-liuyao.yml'
+  if (existsSync(join(root, p))) {
+    let s = read(p)
+    const before = s
+    s = s.replace(/dsh-liuyao-\d+\.\d+\.\d+\.tgz/g, `dsh-liuyao-${V}.tgz`)
+    s = s.replace(/releases\/download\/v[\d.]+\//g, `releases/download/v${V}/`)
+    // 描述里点名的版本号（如「v0.2.0 起支持网站版」）也要跟着走
+    s = s.replace(/\bv\d+\.\d+\.\d+\b/g, `v${V}`)
+    if (s !== before) {
+      write(p, s)
+      console.log(`  ✓ ${p} 版本 → v${V}（记得同步推到 PR 分支）`)
+    }
+  }
+}
+
 console.log('\n完成。请运行 scripts/preflight.mjs 与 test/run-all.mjs 复核。')

@@ -8,7 +8,9 @@
 | v0.2.0 发布（Release + 资产） | ✅ [Release](https://github.com/LJXDSG12/dsh-liuyao/releases/tag/v0.2.0) |
 | 仓库加 `dsh-plugin` topic | ✅ 已加（另加 `deepseek-harness`/`dsh`/`liuyao`） |
 | 收录 PR | ✅ **[PR #7252](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/7252)** |
-| 等官方 CI 转绿并入 | ⏳ 官方明说 CI 失败可在同分支推修复，不用重开 PR |
+| 官方 `PR check` 工作流 | ✅ **success**（2026-10-13 14:00，run 38353713683） |
+| 官方 `Submission gate` 工作流 | ✅ **success**（14:01，check run 115153917745）——「Entries look good: All 1 submitted entry passes: `dsh.bundle` declared, repo old enough, enough commits.」 |
+| 等维护者合并 | ⏳ **两道官方检查都已通过**，PR `mergeable=true`，剩下就是人工评审 |
 
 ---
 
@@ -16,7 +18,7 @@
 
 | 项目 | 证据 |
 |---|---|
-| 公开仓库 | <https://github.com/ljxdsg12/dsh-liuyao>（公开、默认分支 main，HEAD `d74f9cf`） |
+| 公开仓库 | <https://github.com/ljxdsg12/dsh-liuyao>（公开、默认分支 main，HEAD 见 `git log origin/main -1`） |
 | 代码 | `main`，标签 `v0.2.0` 与 HEAD 一致（已强制前移对齐） |
 | Release | <https://github.com/LJXDSG12/dsh-liuyao/releases/tag/v0.2.0>，id `411325729`，`prerelease: false`（Latest） |
 | Release 附件 | `dsh-liuyao-0.2.0.tgz`，**438,575 字节**，SHA256 `8bc9c30913e344b7a2893e31b64aec290e65c91421d3d070f2d07bf3293f94be`，41 个条目 |
@@ -139,6 +141,23 @@ CI 若报错，**在同一分支推修复即可，不用重开 PR**。用 `node 
 还剩一个**已知的文档漂移风险**（不是错误，是提醒）：
 `package.json` 的 `files` 白名单必须覆盖所有要进包的目录。这次就漏了 `web/`，
 导致「发布说明写了包里带网站版、而包里其实没有」。以后往包里加目录，记得同步改白名单。
+**现在有机器兜底了**：`node scripts/preflight.mjs --pack` 会真打一个包再对账，
+白名单漏目录、发布说明承诺的文件不在包里，都会报错。
+
+### 发布新版的操作顺序（用脚本，别手打）
+
+```bash
+node scripts/bump-version.mjs 0.3.0      # 一处改、全仓库同步引用
+node scripts/preflight.mjs --pack        # 必须「全部通过」才继续
+node test/run-all.mjs                    # 11/11
+git commit -am "chore: 0.3.0" && git push origin main
+git push -f origin refs/tags/v0.3.0      # 标签必须与 HEAD 对齐
+node scripts/create-release.mjs <tarball>  # 建 Release + 传资产 + 验直链 200/SHA256
+node scripts/check-market-requirements.mjs # 官方要求逐条复核
+```
+
+收录条目里 `tarball:` 的 tag 要跟着改；`README` 里的安装命令由 `bump-version.mjs` 同步，
+但**条目文件是手写的**，改版时记得一起改（`check-market-entry.mjs` 会校验格式，不校验版本号）。
 
 **npm 发布仍是一个可选改进**：之后用户 `dsh plugin add dsh-liuyao` 即可，
 免 git、免 tarball、免扩展名问题，市场还能显示下载量。收录与否不受影响。
