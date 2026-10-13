@@ -151,5 +151,30 @@ if (process.argv.includes('--pack')) {
   console.log('  （跳过；发布前请用 node scripts/preflight.mjs --pack 跑一次全量）')
 }
 
+// ── 标签与 HEAD 的关系 ──────────────────────────────────────────────────────
+// v<V> 标签不要求等于 HEAD —— 发版之后的文档类提交会让 HEAD 前移，这是正常的，
+// 也不该为了「对齐」而把标签强推到 HEAD：标签指向的那次提交才是 Release 资产的
+// 来源，两者必须同源。真正会出事的是另一种情况：标签落在与 HEAD 无关的分支上
+// （历史被重写），那时 git 安装与 Release 附件给出的是两套不同的代码。
+console.log('— 标签与 HEAD —')
+try {
+  const git = (args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim()
+  const tag = `v${pkg.version}`
+  const tagSha = git(['rev-parse', `${tag}^{}`])
+  ok(true, `${tag} 存在`, tagSha.slice(0, 8))
+  // tag 必须是 HEAD 的祖先：既允许 HEAD 前移，又能抓住历史重写
+  let isAncestor = true
+  try { execFileSync('git', ['merge-base', '--is-ancestor', tagSha, 'HEAD'], { cwd: root, stdio: 'pipe' }) }
+  catch { isAncestor = false }
+  ok(isAncestor, `${tag} 是 HEAD 的祖先（HEAD 可因文档提交前移，但历史不得重写）`)
+  const taggedVersion = git(['show', `${tag}:package.json`])
+  ok(JSON.parse(taggedVersion).version === pkg.version,
+    `${tag} 那次提交里 package.json 的版本也是 ${pkg.version}（标签内容与版本号同源）`)
+  const ahead = git(['rev-list', '--count', `${tag}..HEAD`])
+  if (ahead !== '0') console.log(`  · ${tag} 之后 HEAD 又前进了 ${ahead} 个提交（文档类改动可接受）`)
+} catch (error) {
+  ok(false, '能核对标签与 HEAD 的关系（需要 git 与本地标签）', String(error.message).slice(0, 120))
+}
+
 console.log(bad === 0 ? '\n全部通过' : `\n失败 ${bad} 项`)
 process.exit(bad === 0 ? 0 : 1)
