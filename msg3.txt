@@ -1,8 +1,0 @@
-﻿fix(pkg): files 白名单补上 web/，网站版此前根本没进包
-
-发布说明里写了「包里还带了一个纯静态网站版（web/）」，但实测 pnpm pack 产出的
-tarball 里没有 web/ 任何文件——files 白名单漏了它。这是我先写文档、后核对包内容
-才发现的：文档承诺了包并不包含的东西。
-
-补上后条目数 25 → 41，web/index.html、app.js、bagua.js、liuyao.js、styles.css、
-web.css、DEPLOY.md 与 web/core/ 的 8 个核心模块全部进包。
